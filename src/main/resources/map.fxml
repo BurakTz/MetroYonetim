@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
+
+<AnchorPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.toplutasimaprojesi.MapController">
+    <children>
+        <SplitPane dividerPositions="0.3" prefHeight="700.0" prefWidth="1000.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                    <children>
+                        <TabPane layoutX="14.0" layoutY="46.0" prefHeight="698.0" prefWidth="296.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <tabs>
+                                <Tab text="Rota Planlama">
+                                    <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                            <children>
+                                                <VBox layoutX="14.0" layoutY="14.0" prefHeight="669.0" prefWidth="296.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                                    <children>
+                                                        <Label text="Başlangıç Durağı:" />
+                                                        <ComboBox fx:id="baslangicCombo" prefHeight="30.0" prefWidth="300.0" promptText="Başlangıç durağını seçin" />
+                                                        <Label text="Bitiş Durağı:" />
+                                                        <ComboBox fx:id="bitisCombo" prefHeight="30.0" prefWidth="300.0" promptText="Bitiş durağını seçin" />
+                                                        <Button fx:id="rotaBulButton" mnemonicParsing="false" onAction="#rotaBulButtonAction" prefHeight="40.0" prefWidth="300.0" text="Rota Bul" />
+                                                        <Label text="Rota Sonuçları:" />
+                                                        <ListView fx:id="rotaListView" prefHeight="450.0" prefWidth="300.0" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </AnchorPane>
+                                    </content>
+                                </Tab>
+                                <Tab text="Hat Bilgileri">
+                                    <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                            <children>
+                                                <VBox layoutX="14.0" layoutY="14.0" prefHeight="669.0" prefWidth="296.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                                    <children>
+                                                        <Label text="Metro Hatları:" />
+                                                        <ComboBox fx:id="hatlarCombo" prefHeight="30.0" prefWidth="300.0" promptText="Hat seçin" />
+                                                        <Label text="Hat Durakları:" />
+                                                        <ListView fx:id="hatDuraklariListView" prefHeight="550.0" prefWidth="300.0" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </AnchorPane>
+                                    </content>
+                                </Tab>
+                                <Tab text="Durak Arama">
+                                    <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                            <children>
+                                                <VBox layoutX="14.0" layoutY="14.0" prefHeight="669.0" prefWidth="296.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                                    <children>
+                                                        <Label text="Durak Adı:" />
+                                                        <HBox prefHeight="30.0" prefWidth="200.0" spacing="5.0">
+                                                            <children>
+                                                                <TextField fx:id="durakAramaText" prefHeight="30.0" prefWidth="229.0" promptText="Durak adı girin" />
+                                                                <Button fx:id="durakAraButton" mnemonicParsing="false" onAction="#durakAraButtonAction" prefHeight="30.0" prefWidth="60.0" text="Ara" />
+                                                            </children>
+                                                        </HBox>
+                                                        <Label text="Arama Sonuçları:" />
+                                                        <ListView fx:id="durakAramaListView" prefHeight="550.0" prefWidth="300.0" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </AnchorPane>
+                                    </content>
+                                </Tab>
+                            </tabs>
+                        </TabPane>
+                    </children>
+                </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                    <children>
+                        <WebView fx:id="mapView" layoutX="136.0" layoutY="158.0" prefHeight="698.0" prefWidth="695.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                    </children>
+                </AnchorPane>
+            </items>
+        </SplitPane>
+    </children>
+</AnchorPane>

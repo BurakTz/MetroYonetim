@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Metro Ağı Haritası</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        .station-popup {
+            font-weight: bold;
+        }
+        .transfer-station {
+            border: 3px solid orange;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+
+<script>
+    let map;
+    let metroLines = {};
+    let stations = {};
+
+    window.onload = function() {
+        // İstanbul'un merkezini alıyoruz (Kadıköy civarı)
+        map = L.map('map').setView([41.010, 29.030], 12);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        console.log("Harita başlatıldı");
+    };
+
+    // Java tarafından çağrılacak fonksiyonlar
+
+    // İstasyon ekle
+    window.addStation = function(name, lat, lon, isTransfer) {
+        console.log("İstasyon ekleniyor:", name, lat, lon, isTransfer);
+
+        // Marker options
+        let markerOptions = {};
+
+        if (isTransfer) {
+            // Aktarma istasyonu için özel ikon
+            markerOptions.icon = L.divIcon({
+                className: 'transfer-station',
+                html: '<div style="background-color: white; width: 12px; height: 12px; border-radius: 50%;"></div>',
+                iconSize: [18, 18]
+            });
+        }
+
+        let marker = L.marker([lat, lon], markerOptions).addTo(map);
+        marker.bindPopup('<div class="station-popup">' + name +
+            (isTransfer ? ' (Aktarma İstasyonu)' : '') + '</div>');
+
+        // İstasyonu kaydet
+        stations[name] = {
+            marker: marker,
+            position: [lat, lon],
+            isTransfer: isTransfer
+        };
+
+        return true;
+    };
+
+    // Hat ekle
+    window.addLine = function(name, color) {
+        console.log("Hat ekleniyor:", name, color);
+        metroLines[name] = {
+            color: color,
+            stations: [],
+            polylines: []
+        };
+        return true;
+    };
+
+    // Hatta istasyon ekle ve bağlantıları çiz
+    window.addStationToLine = function(lineName, stationName) {
+        console.log("Hatta istasyon ekleniyor:", lineName, stationName);
+
+        if (!metroLines[lineName] || !stations[stationName]) {
+            console.error("Hat veya istasyon bulunamadı:", lineName, stationName);
+            return false;
+        }
+
+        // İstasyonu hatta ekle
+        metroLines[lineName].stations.push(stationName);
+
+        // İki istasyon arasında bağlantı çiz (eğer hat içinde en az 2 istasyon varsa)
+        let line = metroLines[lineName];
+        if (line.stations.length >= 2) {
+            let stationA = stations[line.stations[line.stations.length - 2]];
+            let stationB = stations[stationName];
+
+            let polyline = L.polyline([stationA.position, stationB.position], {
+                color: line.color,
+                weight: 5,
+                opacity: 0.7
+            }).addTo(map);
+
+            line.polylines.push(polyline);
+        }
+
+        return true;
+    };
+
+    // Merkezi değiştir
+    window.centerMap = function(lat, lon, zoom) {
+        map.setView([lat, lon], zoom || 12);
+        return true;
+    };
+
+    // Rota göster (iki istasyon arasındaki en kısa yol)
+    window.showRoute = function(routePoints, routeStations) {
+        console.log("Rota gösteriliyor:", routePoints);
+
+        // Önceki rotayı temizle
+        if (window.currentRoute) {
+            map.removeLayer(window.currentRoute);
+        }
+
+        if (window.routeMarkers) {
+            window.routeMarkers.forEach(marker => map.removeLayer(marker));
+        }
+
+        window.routeMarkers = [];
+
+        // Yeni rotayı çiz
+        window.currentRoute = L.polyline(routePoints, {
+            color: '#FF4500',
+            weight: 5,
+            opacity: 0.8,
+            dashArray: '10, 10',
+            lineJoin: 'round'
+        }).addTo(map);
+
+        // Rota sınırlarına yakınlaş
+        map.fitBounds(window.currentRoute.getBounds(), {
+            padding: [50, 50]
+        });
+
+        return true;
+    };
+</script>
+</body>
+</html>
