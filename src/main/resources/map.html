@@ -27,6 +27,8 @@
 <div id="map"></div>
 
 <script>
+
+
     let map;
     let metroLines = {};
     let stations = {};
@@ -40,6 +42,37 @@
         }).addTo(map);
 
         console.log("Harita başlatıldı");
+
+        // Yeni eklenen kod buraya gelecek
+        // Haritaya tıklama olayını dinle ve tıklanan konumu göster
+        map.on('click', function(e) {
+            // Daha önce bir tıklama işaretçisi varsa kaldır
+            if (window.clickMarker) {
+                map.removeLayer(window.clickMarker);
+            }
+
+            // Tıklanan konumu al
+            let clickedLat = e.latlng.lat;
+            let clickedLng = e.latlng.lng;
+
+            // Tıklanan konuma işaretçi ekle
+            window.clickMarker = L.marker([clickedLat, clickedLng], {
+                icon: L.divIcon({
+                    className: 'clicked-location',
+                    html: '<div style="background-color: red; width: 10px; height: 10px; border-radius: 50%;"></div>',
+                    iconSize: [10, 10]
+                })
+            }).addTo(map);
+
+            // Tıklanan konumun popup'ını göster
+            window.clickMarker.bindPopup(
+                '<div><strong>Tıklanan Konum</strong><br>' +
+                'Enlem: ' + clickedLat.toFixed(6) + '<br>' +
+                'Boylam: ' + clickedLng.toFixed(6) + '</div>'
+            ).openPopup();
+
+            console.log("Tıklanan konum:", clickedLat, clickedLng);
+        });
     };
 
     // Java tarafından çağrılacak fonksiyonlar
@@ -60,6 +93,8 @@
             });
         }
 
+        // Burada koordinatların doğru sırada eklenmesi gerekiyor
+        // lat -> enlem (xKoordinat), lon -> boylam (yKoordinat)
         let marker = L.marker([lat, lon], markerOptions).addTo(map);
         marker.bindPopup('<div class="station-popup">' + name +
             (isTransfer ? ' (Aktarma İstasyonu)' : '') + '</div>');

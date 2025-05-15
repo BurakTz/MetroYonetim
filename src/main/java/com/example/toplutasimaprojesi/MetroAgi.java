@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class MetroAgi {
     // 1. Singleton instance
-    private static final MetroAgi instance = new MetroAgi(200, 20);
+    private static final MetroAgi instance = new MetroAgi(200, 100);
 
     private Durak[] duraklar;
     private Hat[] hatlar;

@@ -97,10 +97,11 @@ public class MapController implements Initializable {
         // Tüm durakları ekle
         for (int i = 0; i < metroAgi.getDurakSayisi(); i++) {
             Durak durak = metroAgi.getDurakIndex(i);
+            // Parametreleri doğru sırada gönder: isim, enlem (xKoordinat), boylam (yKoordinat), aktarma
             webEngine.executeScript("addStation('" +
                     durak.getIsim() + "', " +
-                    durak.getXKoordinat() + ", " +
-                    durak.getYKoordinat() + ", " +
+                    durak.getXKoordinat() + ", " +  // Enlem (xKoordinat) - lat parametresi
+                    durak.getYKoordinat() + ", " +  // Boylam (yKoordinat) - lon parametresi
                     durak.isAktarmaNoktasi() + ")");
         }
 
@@ -143,63 +144,187 @@ public class MapController implements Initializable {
     // Örnek metro hatlarını oluştur
     private void metroHatlariniOlustur() {
         {
-            // Marmaray
+
             String[] marmarayDuraklari = {
-                    "Gebze", "Tuzla", "İçmeler", "Aydıntepe", "Kaynarca", "Pendik", "Güzelyalı", "Maltepe",
-                    "Söğütlüçeşme", "Ayrılık Çeşmesi", "Üsküdar", "Sirkeci", "Yenikapı", "Bakırköy", "Halkalı"
+                    "Gebze", "Darıca", "Osmangazi", "GTÜ – Fatih", "Cayırova", "Tuzla",
+                    "İçmeler", "Aydıntepe", "Güzelyalı", "Tersane", "Kaynarca", "Pendik",
+                    "Yunus", "Kartal", "Başak", "Atalar", "Cevizli", "Maltepe",
+                    "Süreyya Plajı", "İdealtepe", "Küçükyalı", "Bostancı", "Suadiye",
+                    "Erenköy", "Göztepe", "Feneryolu", "Söğütlüçeşme", "Ayrılık Çeşmesi",
+                    "Üsküdar", "Sirkeci", "Yenikapı", "Kazlıçeşme",
+                    "Zeytinburnu", "Yenimahalle",
+                    "Bakırköy", "Ataköy", "Yeşilyurt", "Yeşilköy",
+                    "Florya Akvaryum", "Florya", "Küçükçekmece", "Mustafa Kemal", "Halkalı"
             };
-
             double[][] marmarayKoordinatlari = {
-                    {40.797, 29.430}, {40.838, 29.330}, {40.853, 29.290}, {40.860, 29.270}, {40.870, 29.250},
-                    {40.880, 29.230}, {40.890, 29.210}, {40.950, 29.170}, {40.985, 29.065}, {40.998, 29.040},
-                    {41.025, 29.015}, {41.015, 28.980}, {41.012, 28.950}, {40.980, 28.870}, {41.035, 28.800}
+                    {40.783559, 29.410139},
+                    {40.791758, 29.391817},
+                    {40.799043, 29.379582},
+                    {40.807369, 29.363852},
+                    {40.810286, 29.347198},
+                    {40.829902, 29.322054},
+                    {40.845887, 29.300290},
+                    {40.852059, 29.293235},
+                    {40.856890, 29.283813},
+                    {40.860869, 29.273218},
+                    {40.871203, 29.255940},
+                    {40.880126, 29.231807},
+                    {40.884327, 29.210464},
+                    {40.888480, 29.191264},
+                    {40.890227, 29.177175},
+                    {40.898484, 29.169089},
+                    {40.910345, 29.155303},
+                    {40.920548, 29.133376},
+                    {40.926346, 29.123875},
+                    {40.937347, 29.114235},
+                    {40.945725, 29.107419},
+                    {40.953451, 29.095779},
+                    {40.960152, 29.084483},
+                    {40.971543, 29.075945},
+                    {40.978912, 29.062682},
+                    {40.978606, 29.048840},
+                    {40.990744, 29.037569},
+                    {41.000159, 29.029768},
+                    {41.025386, 29.014821},
+                    {41.013338, 28.976886},
+                    {41.005413, 28.951358},
+                    //{41.002498, 28.940548},
+                    {40.992331, 28.916747},
+                    {40.985834, 28.905923},
+                    {40.981484, 28.880954},
+                    {40.980137, 28.872699},
+                    {40.980014, 28.856240},
+                    {40.965290, 28.837424},
+                    {40.962359, 28.824569},
+                    {40.967547, 28.796528},
+                    {40.972647, 28.787696},
+                    {40.988512, 28.772505},
+                    {41.005926, 28.774014},
+                   {41.018633, 28.767911}
             };
-
             metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari);
 
-            // M4 Hattı: Kadıköy - Sabiha Gökçen
+
             String[] m4Duraklari = {
-                    "Kadıköy", "Ayrılık Çeşmesi", "Acıbadem", "Ünalan", "Göztepe", "Yenisahra", "Kozyatağı",
-                    "Bostancı", "Küçükyalı", "Maltepe", "Huzurevi", "Gülsuyu", "Esenkent", "Hastane-Adliye",
-                    "Soğanlık", "Kartal", "Yakacık-Adnan Kahveci", "Pendik", "Tavşantepe", "Sabiha Gökçen"
+                    "Sabiha Gökçen", "Kurtköy", "Yayalar", "Fevzi Çakmak",
+                    "Tavşantepe", "PendikM4", "Yakacık", "KartalM4", "Soğanlık",
+                    "Hastane-Adliye", "Esenkent", "Gülsuyu", "Huzurevi",
+                    "MaltepeM4", "KüçükyalıM4", "BostancıM4", "Kozyatağı",
+                    "Yenisahra", "GöztepeM4", "Ünalan", "Acıbadem",
+                    "Ayrılık Çeşmesi", "Kadıköy"
             };
 
             double[][] m4Koordinatlari = {
-                    {40.991, 29.027}, {40.998, 29.040}, {41.005, 29.055}, {41.008, 29.075}, {41.012, 29.095},
-                    {41.017, 29.110}, {41.025, 29.125}, {41.035, 29.135}, {41.045, 29.150}, {41.055, 29.165},
-                    {41.060, 29.180}, {41.065, 29.190}, {41.070, 29.200}, {41.075, 29.210}, {41.080, 29.220},
-                    {41.085, 29.230}, {41.090, 29.240}, {41.095, 29.250}, {41.100, 29.260}, {41.120, 29.310}
+                    {40.906413, 29.310922},  // Sabiha Gökçen
+                    {40.910116, 29.296293},  // Kurtköy
+                    {40.904026, 29.275226},  // Yayalar
+                    {40.889170, 29.262424},  // Fevzi Çakmak
+                    {40.882238, 29.248492},  // Tavşantepe
+                    {40.888629, 29.238392},  // Pendik
+                    {40.896600, 29.226837},  // Yakacık
+                    {40.906265, 29.211318},  // Kartal
+                    {40.912789, 29.192750},  // Soğanlık
+                    {40.916248, 29.178469},  // Hastane-Adliye
+                    {40.920515, 29.166207},  // Esenkent
+                    {40.923787, 29.154489},  // Gülsuyu
+                    {40.929813, 29.146631},  // Huzurevi
+                    {40.936024, 29.139113},  // MaltepeM4
+                    {40.948938, 29.122185},  // Küçükyalı
+                    {40.964719, 29.105275},  // Bostancı
+                    {40.975784, 29.098797},  // Kozyatağı
+                    {40.984686, 29.090444},  // Yenisahra
+                    {40.993770, 29.071245},  // Göztepe
+                    {40.998110, 29.060525},  // Ünalan
+                    {41.002014, 29.045396},  // Acıbadem
+                    {41.000381, 29.030075},  // Ayrılık Çeşmesi
+                    {40.990530, 29.022147}   // Kadıköy
             };
 
             metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari);
 
-            // M5 Hattı: Üsküdar - Çekmeköy
-            String[] m5Duraklari = {
-                    "Üsküdar", "Fıstıkağacı", "Bağlarbaşı", "Altunizade", "Kısıklı", "Bulgurlu",
-                    "Ümraniye", "Çarşı", "Yamanevler", "Çakmak", "İMES", "Modoko", "Dudullu", "Huzur", "Çekmeköy"
-            };
-
-            double[][] m5Koordinatlari = {
-                    {41.025, 29.015}, {41.028, 29.025}, {41.030, 29.035}, {41.023, 29.048}, {41.018, 29.055},
-                    {41.010, 29.065}, {41.005, 29.080}, {41.000, 29.095}, {40.995, 29.105}, {40.990, 29.115},
-                    {40.985, 29.125}, {40.980, 29.135}, {40.975, 29.145}, {40.970, 29.155}, {40.965, 29.165}
-            };
-
-            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari);
-
-            // M8 Hattı: Bostancı - Dudullu
             String[] m8Duraklari = {
-                    "Bostancı", "Emin Ali Paşa", "Ayşekadın", "Kozyatağı", "Küçükbakkalköy",
-                    "İçerenköy", "Mevlana", "İMES", "Modoko", "Dudullu"
+                    "Bostancı",
+                    "Emin Ali Paşa",
+                    "Ayşekadın",
+                    "Kozyatağı",
+                    "Küçükbakkalköy",
+                    "İçerenköy",
+                    "Kayışdağı",
+                    "Mevlana",
+                    "İMES",
+                    "MODOKO-KEYAP",
+                    "Dudullu",
+                    "Huzur",
+                    "Parseller"
             };
 
             double[][] m8Koordinatlari = {
-                    {41.035, 29.135}, {40.964, 29.082}, {40.968, 29.092}, {41.025, 29.125}, {40.975, 29.112},
-                    {40.978, 29.122}, {40.982, 29.132}, {40.985, 29.125}, {40.980, 29.135}, {40.975, 29.145}
+                    {40.953451, 29.095779},  // Bostancı
+                    {40.960600, 29.093885},  // Emin Ali Paşa
+                    {40.967009, 29.086917},  // Ayşekadın
+                    {40.975784, 29.098797},  // Kozyatağı
+                    {40.978809, 29.111555},  // Küçükbakkalköy
+                    {40.979158, 29.126216},  // İçerenköy
+                    {40.984635, 29.137775},  // Kayışdağı
+                    {40.992225, 29.153342},  // Mevlana
+                    {41.000271, 29.156067},  // İMES
+                    {41.007514, 29.162259},  // MODOKO-KEYAP
+                    {41.015608, 29.163382},  // Dudullu
+                    {41.022572, 29.159687},  // Huzur
+                    {41.031239, 29.152671}   // Parseller
             };
 
             metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari);
 
+
+            String[] m5Duraklari = {
+                    "Üsküdar",
+                    "Fıstıkağacı",
+                    "Bağlarbaşı",
+                    "Altunizade",
+                    "Kısıklı",
+                    "Bulgurlu",
+                    "Ümraniye",
+                    "Çarşı",
+                    "Yamanevler",
+                    "Çakmak",
+                    "Ihlamurkuyu",
+                    "Altınşehir",
+                    "İmam Hatip Lisesi",
+                    "Dudullu",
+                    "Necip Fazıl",
+                    "Çekmeköy",
+                    "Meclis",
+                    "Sarıgazi",
+                    "Sancaktepe Şehir Hastanesi",
+                    "Sancaktepe",
+                    "Samandıra Merkez"
+            };
+
+            double[][] m5Koordinatlari = {
+                    {41.025386, 29.014821},  // Üsküdar
+                    {41.027987, 29.028540},  // Fıstıkağacı
+                    {41.021991, 29.035892},  // Bağlarbaşı
+                    {41.021715, 29.048406},  // Altunizade
+                    {41.022287, 29.062130},  // Kısıklı
+                    {41.016355, 29.076221},  // Bulgurlu
+                    {41.024708, 29.084792},  // Ümraniye
+                    {41.026026, 29.097201},  // Çarşı
+                    {41.024266, 29.108986},  // Yamanevler
+                    {41.021482, 29.118280},  // Çakmak
+                    {41.019260, 29.131191},  // Ihlamurkuyu
+                    {41.016583, 29.140074},  // Altınşehir
+                    {41.016084, 29.151892},  // İmam Hatip Lisesi
+                    {41.015608, 29.163382},  // Dudullu
+                    {41.016208, 29.179181},  // Necip Fazıl
+                    {41.014494, 29.188681},  // Çekmeköy
+                    {41.009596, 29.199071},  // Meclis
+                    {41.010283, 29.211868},  // Sarıgazi
+                    {41.002071, 29.216860},  // Sancaktepe Şehir Hastanesi
+                    {40.991898, 29.228907},  // Sancaktepe
+                    {40.983305, 29.230839}   // Samandıra Merkez
+            };
+            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari);
 
     }}
 
