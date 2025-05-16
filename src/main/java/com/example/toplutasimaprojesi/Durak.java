@@ -37,12 +37,13 @@ public class Durak {
     }
 
     // Bağlantılı durak ekleme
-    public void baglantiEkle(Durak durak, String hatIsmi) {
-        BaglantiDurak yeniBaglanti = new BaglantiDurak(durak, hatIsmi);
+    public void baglantiEkle(Durak durak, String hatIsmi,int zaman) {
+        BaglantiDurak yeniBaglanti = new BaglantiDurak(durak, hatIsmi, zaman);
 
         // İlk bağlantı ekleniyorsa
         if (baglantiListesi == null) {
             baglantiListesi = yeniBaglanti;
+            yeniBaglanti.setGecenSure(zaman);
         } else {
             // Listeye ekle
             BaglantiDurak temp = baglantiListesi;
@@ -50,6 +51,7 @@ public class Durak {
                 temp = temp.sonraki;
             }
             temp.sonraki = yeniBaglanti;
+            yeniBaglanti.setGecenSure(zaman);
         }
     }
 

@@ -188,7 +188,6 @@ public class MapController implements Initializable {
                     {41.025386, 29.014821},
                     {41.013338, 28.976886},
                     {41.005413, 28.951358},
-                    //{41.002498, 28.940548},
                     {40.992331, 28.916747},
                     {40.985834, 28.905923},
                     {40.981484, 28.880954},
@@ -202,7 +201,13 @@ public class MapController implements Initializable {
                     {41.005926, 28.774014},
                    {41.018633, 28.767911}
             };
-            metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari);
+
+            int[] marmaraySureleri = {
+                    3, 2, 3, 2, 4, 3, 2, 2, 2, 3, 4, 3, 2, 2, 2, 3, 3, 2, 2, 2,
+                    3, 2, 2, 2, 2, 3, 2, 4, 5, 4, 3, 2, 4, 2, 3, 2, 3, 3, 2, 3, 3, 4
+            };
+
+            metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari,marmaraySureleri);
 
 
             String[] m4Duraklari = {
@@ -240,7 +245,11 @@ public class MapController implements Initializable {
                     {40.990530, 29.022147}   // Kadıköy
             };
 
-            metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari);
+            int[] m4Sureleri = {
+                    3, 3, 3, 2, 2, 2, 3, 2, 3, 2, 2, 2, 2, 3, 3, 2, 2, 3, 2, 3, 3, 2
+            };
+
+            metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari,m4Sureleri);
 
             String[] m8Duraklari = {
                     "Bostancı",
@@ -274,7 +283,11 @@ public class MapController implements Initializable {
                     {41.031239, 29.152671}   // Parseller
             };
 
-            metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari);
+            int[] m8Sureleri = {
+                    2, 2, 3, 2, 3, 3, 3, 2, 2, 2, 2, 2
+            };
+
+            metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari,m8Sureleri);
 
 
             String[] m5Duraklari = {
@@ -324,7 +337,12 @@ public class MapController implements Initializable {
                     {40.991898, 29.228907},  // Sancaktepe
                     {40.983305, 29.230839}   // Samandıra Merkez
             };
-            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari);
+
+            int[] m5Sureleri = {
+                    2, 2, 3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 3, 3, 2
+            };
+
+            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari,m5Sureleri);
 
     }}
 

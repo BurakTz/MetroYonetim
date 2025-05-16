@@ -108,7 +108,7 @@ public class MetroAgi {
     }
 
     // İki durak arasında bağlantı oluşturma
-    public void baglantiEkle(String durak1Isim, String durak2Isim, String hatIsmi) {
+    public void baglantiEkle(String durak1Isim, String durak2Isim, String hatIsmi,int zaman) {
         Durak drk1 = durakBul(durak1Isim);
         Durak drk2 = durakBul(durak2Isim);
 
@@ -118,14 +118,14 @@ public class MetroAgi {
         }
 
         // Çift yönlü bağlantı oluştur
-        drk1.baglantiEkle(drk2, hatIsmi);
-        drk2.baglantiEkle(drk1, hatIsmi);
+        drk1.baglantiEkle(drk2, hatIsmi,zaman);
+        drk2.baglantiEkle(drk1, hatIsmi,zaman);
     }
 
     // Hat oluşturma ve duraklarını sırayla ekleme
-    public void hatOlustur(String hatIsmi, String[] durakIsimleri, double[][] koordinatlar) {
-        if (durakIsimleri.length != koordinatlar.length) {
-            System.out.println("Durak isimleri ve koordinat sayıları eşit olmalıdır!");
+    public void hatOlustur(String hatIsmi, String[] durakIsimleri, double[][] koordinatlar,int [] gecenSureler) {
+        if (durakIsimleri.length != koordinatlar.length && koordinatlar.length != gecenSureler.length) {
+            System.out.println("Durak isimleri , koordinat sayıları ve gecen sureler eşit olmalıdır!");
             return;
         }
 
@@ -137,12 +137,15 @@ public class MetroAgi {
 
         // Önceki durak referansı
         Durak oncekiDurak = null;
+        int y=0;
 
         // Hat üzerindeki her durağı ekle
         for (int i = 0; i < durakIsimleri.length; i++) {
             String durakIsmi = durakIsimleri[i];
             double xKoordinat = koordinatlar[i][0];
             double yKoordinat = koordinatlar[i][1];
+            int  gecenSure  = gecenSureler[y];
+
 
             Durak durak = durakBul(durakIsmi);
 
@@ -156,7 +159,8 @@ public class MetroAgi {
 
             // Önceki durakla bağlantı oluştur
             if (oncekiDurak != null) {
-                baglantiEkle(oncekiDurak.getIsim(), durak.getIsim(), hatIsmi);
+                y++;
+                baglantiEkle(oncekiDurak.getIsim(), durak.getIsim(), hatIsmi,gecenSure);
             }
 
             oncekiDurak = durak;
