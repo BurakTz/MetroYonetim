@@ -7,11 +7,19 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
+import javafx.geometry.Insets;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import java.awt.*;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +38,6 @@ public class MapController implements Initializable {
     private ComboBox<String> bitisCombo;
 
     @FXML
-    private ComboBox<String> hatlarCombo;
-
-    @FXML
     private ListView<String> rotaListView;
 
     @FXML
@@ -43,6 +48,12 @@ public class MapController implements Initializable {
 
     @FXML
     private ListView<String> durakAramaListView;
+
+    @FXML
+    private FlowPane hatButtonsPane;
+
+    // Aktif olarak seçilen hat
+    private String selectedLine = "ALL";
 
     private WebEngine webEngine;
     private MetroAgi metroAgi;
@@ -64,18 +75,11 @@ public class MapController implements Initializable {
             if (newState.toString().equals("SUCCEEDED")) {
                 initJavaScriptBridge();
                 Platform.runLater(this::haritayiDoldur);
+                Platform.runLater(this::hatButtonlariniOlustur);
             }
         });
-
         // ComboBox ve ListView ayarları
         durakComboBoxlariniDoldur();
-        hatComboBoxDoldur();
-
-        hatlarCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                hatDuraklariniGoster(newVal);
-            }
-        });
     }
 
     // JavaScript köprüsünü ayarla
@@ -346,6 +350,80 @@ public class MapController implements Initializable {
 
     }}
 
+    // Hat seçildiğinde çağrılacak metot
+    private void hatSecAction(String hatIsmi) {
+        selectedLine = hatIsmi;
+
+        // JavaScript'te sadece seçilen hattı göster
+        webEngine.executeScript("showOnlyLine('" + hatIsmi + "')");
+
+        // Seçilen hattın duraklarını göster (eğer "ALL" değilse)
+        if (!hatIsmi.equals("ALL")) {
+            hatDuraklariniGoster(hatIsmi);
+        } else {
+            // Tüm hatlar seçildiğinde durak listesini temizle
+            hatDuraklariListView.setItems(FXCollections.observableArrayList());
+        }
+    }
+
+    // Hat butonlarını oluştur ve hatButtonsPane içine ekle
+    // Hat butonlarını oluştur ve hatButtonsPane içine ekle
+    private void hatButtonlariniOlustur() {
+        // Önce tüm hatları göster butonu
+        Button tumHatlarButton = new Button("Tüm Hatlar");
+        tumHatlarButton.setStyle("-fx-background-color: #333; -fx-text-fill: white;");
+        tumHatlarButton.setPrefWidth(100);
+        tumHatlarButton.setPrefHeight(40);
+        tumHatlarButton.setOnAction(e -> hatSecAction("ALL"));
+
+        hatButtonsPane.getChildren().add(tumHatlarButton);
+
+        // Her hat için bir buton oluştur
+        for (int i = 0; i < metroAgi.getHatSayisi(); i++) {
+            Hat hat = metroAgi.getHatIndex(i);
+            String hatIsmi = hat.getIsim();
+            String renk = hatRenkleri.getOrDefault(hatIsmi, "#3388ff");
+
+            // Hat butonunu oluştur
+            Button hatButton = new Button(hatIsmi);
+
+            // Hat PNG'sini yüklemeye çalış, yoksa yazı olarak kalır
+            try {
+                String imagePath = "/images/" + hatIsmi.toLowerCase() + ".png";
+                InputStream stream = getClass().getResourceAsStream(imagePath);
+
+                if (stream != null) {
+                    // JavaFX Image ve ImageView kullanımı
+                    javafx.scene.image.Image hatImage = new javafx.scene.image.Image(stream);
+                    javafx.scene.image.ImageView imageView = new javafx.scene.image.ImageView(hatImage);
+                    imageView.setFitHeight(30);
+                    imageView.setPreserveRatio(true);
+                    hatButton.setGraphic(imageView);
+                    hatButton.setText(""); // Resim varsa yazıyı kaldır
+                }
+            } catch (Exception e) {
+                System.out.println(hatIsmi + " için resim bulunamadı, sadece metin kullanılıyor.");
+            }
+
+            // Buton stilini ayarla
+            hatButton.setStyle("-fx-background-color: " + renk + "; -fx-text-fill: white;");
+            hatButton.setPrefWidth(80);
+            hatButton.setPrefHeight(40);
+
+            // Hat seçim işlemini ekle
+            hatButton.setOnAction(e -> hatSecAction(hatIsmi));
+
+            // Panele ekle
+            hatButtonsPane.getChildren().add(hatButton);
+        }
+
+        // Panel stil ayarları
+        hatButtonsPane.setHgap(10);
+        hatButtonsPane.setVgap(10);
+        // Tüm kenarlar için 10 piksel boşluk
+        hatButtonsPane.setPadding(new Insets(10, 10, 10, 10));
+    }
+
     // Durak ComboBox'larını doldur
     private void durakComboBoxlariniDoldur() {
         ObservableList<String> duraklar = FXCollections.observableArrayList();
@@ -358,16 +436,6 @@ public class MapController implements Initializable {
         bitisCombo.setItems(duraklar);
     }
 
-    // Hat ComboBox'ını doldur
-    private void hatComboBoxDoldur() {
-        ObservableList<String> hatlar = FXCollections.observableArrayList();
-
-        for (int i = 0; i < metroAgi.getHatSayisi(); i++) {
-            hatlar.add(metroAgi.getHatIndex(i).getIsim());
-        }
-
-        hatlarCombo.setItems(hatlar);
-    }
 
     // Hat durakları göster
     private void hatDuraklariniGoster(String hatIsmi) {
@@ -425,6 +493,10 @@ public class MapController implements Initializable {
         }
         routePointsJs.append("]");
         webEngine.executeScript("showRoute(" + routePointsJs + ")");
+
+        // Rota çizildikten sonra, tüm hatları göstermeye geç
+        webEngine.executeScript("showOnlyLine('ALL')");
+        selectedLine = "ALL";
     }
 
 

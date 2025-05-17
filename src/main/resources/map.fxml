@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
 
+<?import javafx.scene.layout.FlowPane?>
 <AnchorPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.toplutasimaprojesi.MapController">
     <children>
         <SplitPane dividerPositions="0.3" prefHeight="700.0" prefWidth="1000.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -46,8 +47,8 @@
                                             <children>
                                                 <VBox layoutX="14.0" layoutY="14.0" prefHeight="669.0" prefWidth="296.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                                                     <children>
-                                                        <Label text="Metro Hatları:" />
-                                                        <ComboBox fx:id="hatlarCombo" prefHeight="30.0" prefWidth="300.0" promptText="Hat seçin" />
+                                                        <Label text="Hat Seçimi:" />
+                                                        <FlowPane fx:id="hatButtonsPane" prefHeight="120.0" prefWidth="300.0" />
                                                         <Label text="Hat Durakları:" />
                                                         <ListView fx:id="hatDuraklariListView" prefHeight="550.0" prefWidth="300.0" />
                                                     </children>

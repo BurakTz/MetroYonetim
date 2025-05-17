@@ -27,8 +27,7 @@
 <div id="map"></div>
 
 <script>
-
-
+    let currentVisibleLine = null;
     let map;
     let metroLines = {};
     let stations = {};
@@ -103,7 +102,8 @@
         stations[name] = {
             marker: marker,
             position: [lat, lon],
-            isTransfer: isTransfer
+            isTransfer: isTransfer,
+            lines: [] // Durağın hangi hatlara ait olduğunu takip etmek için boş dizi ekle
         };
 
         return true;
@@ -115,7 +115,8 @@
         metroLines[name] = {
             color: color,
             stations: [],
-            polylines: []
+            polylines: [],
+            visible: true // Varsayılan olarak tüm hatlar görünür
         };
         return true;
     };
@@ -132,11 +133,23 @@
         // İstasyonu hatta ekle
         metroLines[lineName].stations.push(stationName);
 
+        // Bu hattı istasyonun hatlar dizisine ekle
+        if (!stations[stationName].lines) {
+            stations[stationName].lines = [];
+        }
+
+        if (!stations[stationName].lines.includes(lineName)) {
+            stations[stationName].lines.push(lineName);
+        }
+
         // İki istasyon arasında bağlantı çiz (eğer hat içinde en az 2 istasyon varsa)
         let line = metroLines[lineName];
         if (line.stations.length >= 2) {
             let stationA = stations[line.stations[line.stations.length - 2]];
             let stationB = stations[stationName];
+
+            console.log("Bağlantı çiziliyor:", line.stations[line.stations.length - 2], "->", stationName);
+            console.log("Koordinatlar:", stationA.position, "->", stationB.position);
 
             let polyline = L.polyline([stationA.position, stationB.position], {
                 color: line.color,
@@ -184,6 +197,44 @@
         map.fitBounds(window.currentRoute.getBounds(), {
             padding: [50, 50]
         });
+
+        return true;
+    };
+
+    window.showOnlyLine = function(lineName){
+        console.log("Sadece hat gösteriliyor:", lineName);
+
+        // Mevcut görünürlük durumunu kaydet
+        currentVisibleLine = lineName;
+
+        for(let name in metroLines) {
+            const line = metroLines[name];
+            const shouldBeVisible = (lineName === "ALL" || name === lineName);
+
+            line.polylines.forEach(polyline => {
+                if(shouldBeVisible){
+                    map.addLayer(polyline);
+                } else {
+                    map.removeLayer(polyline);
+                }
+            });
+
+            // Görünürlük durumunu güncelle
+            line.visible = shouldBeVisible;
+        }
+
+        // İstasyon görünürlüğünü güncelle
+        for(let stationName in stations){
+            const station = stations[stationName];
+
+            // İstasyon hat bilgisi yoksa veya seçilen hatta ait değilse gizle
+            if (lineName !== "ALL" && (!station.lines || !station.lines.includes(lineName))) {
+                map.removeLayer(station.marker);
+            } else {
+                // İstasyonu görünür yap
+                map.addLayer(station.marker);
+            }
+        }
 
         return true;
     };
