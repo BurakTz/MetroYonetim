@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="700.0" prefWidth="1000.0" style="-fx-background-color: #fffcf9;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.toplutasimaprojesi.KarsilamaEkraniController">
+    <children>
+        <ImageView cache="true" cacheHint="QUALITY" fitHeight="725.0" fitWidth="700.0" layoutX="150.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@images/logo.png" />
+            </image>
+        </ImageView>
+        <Button fx:id="baslayinButton" layoutX="322.0" layoutY="498.0" mnemonicParsing="false" onAction="#baslayinButtonAction" prefHeight="91.0" prefWidth="345.0" style="-fx-background-color: #0a2342; -fx-background-radius: 50; -fx-font-size: 36px; -fx-font-weight: bold;" text="Başlayın" textFill="WHITE">
+            <font>
+                <Font name="System Bold" size="36.0" />
+            </font>
+        </Button>
+    </children>
+</AnchorPane>

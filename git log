@@ -1,0 +1,23 @@
+[33mcommit b5cb66fa9f3fa740698e443be98c3990b7f54949[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Burak Tuzcu <burak4160@icloud.com>
+Date:   Sat May 17 14:57:54 2025 +0300
+
+    javafx ile hatlar kısmına hat ıconları eklendı
+
+[33mcommit 1125f4b4a693896943df6395397a61570703dad7[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Burak Tuzcu <burak4160@icloud.com>
+Date:   Fri May 16 19:50:06 2025 +0300
+
+    Duraklar arası gecenSüre eklendi.
+
+[33mcommit 56e6139070e6a730750d758ee823acc359be6af4[m
+Author: Burak Tuzcu <burak4160@icloud.com>
+Date:   Thu May 15 23:18:25 2025 +0300
+
+    m4 m8 m5 marmaray tek tek elle koordınatları gırıldı
+
+[33mcommit 08cacfa4a1516ef3adf61f4be5e8b35afc5b0438[m
+Author: Burak Tuzcu <burak4160@icloud.com>
+Date:   Wed May 14 23:49:47 2025 +0300
+
+    google maps oncesi temel proje yapısı kuruldu

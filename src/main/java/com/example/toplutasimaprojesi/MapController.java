@@ -7,19 +7,11 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
-import javafx.geometry.Insets;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import java.awt.*;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +44,12 @@ public class MapController implements Initializable {
     @FXML
     private FlowPane hatButtonsPane;
 
+    @FXML private Button btnTumHatlar;
+    @FXML private Button btnM4;
+    @FXML private Button btnM5;
+    @FXML private Button btnM8;
+    @FXML private Button btnMarmaray;
+
     // Aktif olarak seçilen hat
     private String selectedLine = "ALL";
 
@@ -75,11 +73,23 @@ public class MapController implements Initializable {
             if (newState.toString().equals("SUCCEEDED")) {
                 initJavaScriptBridge();
                 Platform.runLater(this::haritayiDoldur);
-                Platform.runLater(this::hatButtonlariniOlustur);
             }
         });
+
+        // Butonların tıklama olaylarını başlat
+        butonlariBaslat();
+
         // ComboBox ve ListView ayarları
         durakComboBoxlariniDoldur();
+    }
+
+    // Butonların tıklama olaylarını başlat
+    private void butonlariBaslat() {
+        btnTumHatlar.setOnAction(e -> hatSecAction("ALL"));
+        btnM4.setOnAction(e -> hatSecAction("M4"));
+        btnM5.setOnAction(e -> hatSecAction("M5"));
+        btnM8.setOnAction(e -> hatSecAction("M8"));
+        btnMarmaray.setOnAction(e -> hatSecAction("Marmaray"));
     }
 
     // JavaScript köprüsünü ayarla
@@ -143,12 +153,12 @@ public class MapController implements Initializable {
         hatRenkleri.put("M8", "#876129"); // Kahverengi
         hatRenkleri.put("M9", "#DA9100"); // Altın Sarısı
         hatRenkleri.put("M10", "#00AFAD"); // Turkuaz
+        hatRenkleri.put("Marmaray", "#0075C9"); // Deniz Mavisi
     }
 
     // Örnek metro hatlarını oluştur
     private void metroHatlariniOlustur() {
         {
-
             String[] marmarayDuraklari = {
                     "Gebze", "Darıca", "Osmangazi", "GTÜ – Fatih", "Cayırova", "Tuzla",
                     "İçmeler", "Aydıntepe", "Güzelyalı", "Tersane", "Kaynarca", "Pendik",
@@ -203,7 +213,7 @@ public class MapController implements Initializable {
                     {40.972647, 28.787696},
                     {40.988512, 28.772505},
                     {41.005926, 28.774014},
-                   {41.018633, 28.767911}
+                    {41.018633, 28.767911}
             };
 
             int[] marmaraySureleri = {
@@ -211,8 +221,7 @@ public class MapController implements Initializable {
                     3, 2, 2, 2, 2, 3, 2, 4, 5, 4, 3, 2, 4, 2, 3, 2, 3, 3, 2, 3, 3, 4
             };
 
-            metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari,marmaraySureleri);
-
+            metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari, marmaraySureleri);
 
             String[] m4Duraklari = {
                     "Sabiha Gökçen", "Kurtköy", "Yayalar", "Fevzi Çakmak",
@@ -253,7 +262,7 @@ public class MapController implements Initializable {
                     3, 3, 3, 2, 2, 2, 3, 2, 3, 2, 2, 2, 2, 3, 3, 2, 2, 3, 2, 3, 3, 2
             };
 
-            metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari,m4Sureleri);
+            metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari, m4Sureleri);
 
             String[] m8Duraklari = {
                     "Bostancı",
@@ -291,8 +300,7 @@ public class MapController implements Initializable {
                     2, 2, 3, 2, 3, 3, 3, 2, 2, 2, 2, 2
             };
 
-            metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari,m8Sureleri);
-
+            metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari, m8Sureleri);
 
             String[] m5Duraklari = {
                     "Üsküdar",
@@ -346,9 +354,9 @@ public class MapController implements Initializable {
                     2, 2, 3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 3, 3, 2
             };
 
-            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari,m5Sureleri);
-
-    }}
+            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari, m5Sureleri);
+        }
+    }
 
     // Hat seçildiğinde çağrılacak metot
     private void hatSecAction(String hatIsmi) {
@@ -366,64 +374,6 @@ public class MapController implements Initializable {
         }
     }
 
-    // Hat butonlarını oluştur ve hatButtonsPane içine ekle
-    // Hat butonlarını oluştur ve hatButtonsPane içine ekle
-    private void hatButtonlariniOlustur() {
-        // Önce tüm hatları göster butonu
-        Button tumHatlarButton = new Button("Tüm Hatlar");
-        tumHatlarButton.setStyle("-fx-background-color: #333; -fx-text-fill: white;");
-        tumHatlarButton.setPrefWidth(100);
-        tumHatlarButton.setPrefHeight(40);
-        tumHatlarButton.setOnAction(e -> hatSecAction("ALL"));
-
-        hatButtonsPane.getChildren().add(tumHatlarButton);
-
-        // Her hat için bir buton oluştur
-        for (int i = 0; i < metroAgi.getHatSayisi(); i++) {
-            Hat hat = metroAgi.getHatIndex(i);
-            String hatIsmi = hat.getIsim();
-            String renk = hatRenkleri.getOrDefault(hatIsmi, "#3388ff");
-
-            // Hat butonunu oluştur
-            Button hatButton = new Button(hatIsmi);
-
-            // Hat PNG'sini yüklemeye çalış, yoksa yazı olarak kalır
-            try {
-                String imagePath = "/images/" + hatIsmi.toLowerCase() + ".png";
-                InputStream stream = getClass().getResourceAsStream(imagePath);
-
-                if (stream != null) {
-                    // JavaFX Image ve ImageView kullanımı
-                    javafx.scene.image.Image hatImage = new javafx.scene.image.Image(stream);
-                    javafx.scene.image.ImageView imageView = new javafx.scene.image.ImageView(hatImage);
-                    imageView.setFitHeight(30);
-                    imageView.setPreserveRatio(true);
-                    hatButton.setGraphic(imageView);
-                    hatButton.setText(""); // Resim varsa yazıyı kaldır
-                }
-            } catch (Exception e) {
-                System.out.println(hatIsmi + " için resim bulunamadı, sadece metin kullanılıyor.");
-            }
-
-            // Buton stilini ayarla
-            hatButton.setStyle("-fx-background-color: " + renk + "; -fx-text-fill: white;");
-            hatButton.setPrefWidth(80);
-            hatButton.setPrefHeight(40);
-
-            // Hat seçim işlemini ekle
-            hatButton.setOnAction(e -> hatSecAction(hatIsmi));
-
-            // Panele ekle
-            hatButtonsPane.getChildren().add(hatButton);
-        }
-
-        // Panel stil ayarları
-        hatButtonsPane.setHgap(10);
-        hatButtonsPane.setVgap(10);
-        // Tüm kenarlar için 10 piksel boşluk
-        hatButtonsPane.setPadding(new Insets(10, 10, 10, 10));
-    }
-
     // Durak ComboBox'larını doldur
     private void durakComboBoxlariniDoldur() {
         ObservableList<String> duraklar = FXCollections.observableArrayList();
@@ -435,7 +385,6 @@ public class MapController implements Initializable {
         baslangicCombo.setItems(duraklar);
         bitisCombo.setItems(duraklar);
     }
-
 
     // Hat durakları göster
     private void hatDuraklariniGoster(String hatIsmi) {
@@ -498,7 +447,6 @@ public class MapController implements Initializable {
         webEngine.executeScript("showOnlyLine('ALL')");
         selectedLine = "ALL";
     }
-
 
     @FXML
     private void durakAraButtonAction(ActionEvent event) {
