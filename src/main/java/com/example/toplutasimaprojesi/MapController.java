@@ -119,16 +119,16 @@ public class MapController implements Initializable {
                     durak.isAktarmaNoktasi() + ")");
         }
 
-        // Hatları duraklar ile bağla
+        // Hatları duraklar ile bağla - ArrayList kullanımı
         for (int i = 0; i < metroAgi.getHatSayisi(); i++) {
             Hat hat = metroAgi.getHatIndex(i);
             String hatIsmi = hat.getIsim();
 
-            DurakHat durakHat = hat.getBaslangic();
-            while (durakHat != null) {
-                String durakIsmi = durakHat.getDurak().getIsim();
+            // ArrayList kullanarak durakları al
+            ArrayList<Durak> duraklar = hat.getDuraklar();
+            for (Durak durak : duraklar) {
+                String durakIsmi = durak.getIsim();
                 webEngine.executeScript("addStationToLine('" + hatIsmi + "', '" + durakIsmi + "')");
-                durakHat = durakHat.sonraki;
             }
         }
 
@@ -386,22 +386,19 @@ public class MapController implements Initializable {
         bitisCombo.setItems(duraklar);
     }
 
-    // Hat durakları göster
+    // Hat durakları göster - ArrayList kullanımı
     private void hatDuraklariniGoster(String hatIsmi) {
         Hat hat = metroAgi.hatBul(hatIsmi);
         ObservableList<String> duraklar = FXCollections.observableArrayList();
 
         if (hat != null) {
-            DurakHat durakHat = hat.getBaslangic();
-            int sira = 1;
+            ArrayList<Durak> hatDuraklari = hat.getDuraklar();
 
-            while (durakHat != null) {
-                Durak durak = durakHat.getDurak();
-                String durakBilgi = sira + ". " + durak.getIsim() +
+            for (int i = 0; i < hatDuraklari.size(); i++) {
+                Durak durak = hatDuraklari.get(i);
+                String durakBilgi = (i + 1) + ". " + durak.getIsim() +
                         (durak.isAktarmaNoktasi() ? " (Aktarma Noktası)" : "");
                 duraklar.add(durakBilgi);
-                durakHat = durakHat.sonraki;
-                sira++;
             }
         }
 

@@ -1,13 +1,15 @@
 package com.example.toplutasimaprojesi;
 
+import java.util.ArrayList;
+
 // Hat sınıfı (Belirli bir metro hattı)
 public class Hat {
-    private String isim;        // Hat adı (örneğin: "Kırmızı Hat", "M1", vb.)
-    private DurakHat baslangic;  // Hat üzerindeki durakların sıralı listesi
+    private String isim;        // Hat adı (örneğin: "M1", "M4", "Marmaray")
+    private ArrayList<Durak> duraklar;  // Hat üzerindeki durakların sıralı listesi
 
     public Hat(String isim) {
         this.isim = isim;
-        this.baslangic = null;
+        this.duraklar = new ArrayList<>();
     }
 
     public String getIsim() {
@@ -16,39 +18,46 @@ public class Hat {
 
     // Hatta durak ekleme (sıralı)
     public void durakEkle(Durak durak) {
-        DurakHat yeniDurak = new DurakHat(durak);
-
-        // İlk durak ekleniyorsa
-        if (baslangic == null) {
-            baslangic = yeniDurak;
-        } else {
-            // Listenin sonuna ekle
-            DurakHat temp = baslangic;
-            while (temp.sonraki != null) {
-                temp = temp.sonraki;
-            }
-            temp.sonraki = yeniDurak;
-            yeniDurak.onceki = temp;  // Çift yönlü bağlantı
-        }
+        duraklar.add(durak);
     }
 
     // Hattaki durakları sırayla yazdır
     public void duraklariYazdir() {
         System.out.println(isim + " durakları:");
-        DurakHat temp = baslangic;
-        int sayac = 1;
 
-        while (temp != null) {
-            System.out.println(sayac + ". " + temp.getDurak().getIsim() +
-                    (temp.getDurak().isAktarmaNoktasi() ? " (Aktarma Noktası)" : "") +
-                    " [" + temp.getDurak().getXKoordinat() + ", " + temp.getDurak().getYKoordinat() + "]");
-            temp = temp.sonraki;
-            sayac++;
+        for (int i = 0; i < duraklar.size(); i++) {
+            Durak durak = duraklar.get(i);
+            System.out.println((i + 1) + ". " + durak.getIsim() +
+                    (durak.isAktarmaNoktasi() ? " (Aktarma Noktası)" : "") +
+                    " [" + durak.getXKoordinat() + ", " + durak.getYKoordinat() + "]");
         }
     }
 
-    // Hattın başlangıç durağını döndür
-    public DurakHat getBaslangic() {
-        return baslangic;
+    // Hattın durakları listesini döndür
+    public ArrayList<Durak> getDuraklar() {
+        return duraklar;
+    }
+
+    // Durak sayısını döndür
+    public int getDurakSayisi() {
+        return duraklar.size();
+    }
+
+    // Belirli index'teki durağı döndür
+    public Durak getDurak(int index) {
+        if (index >= 0 && index < duraklar.size()) {
+            return duraklar.get(index);
+        }
+        return null;
+    }
+
+    // İlk durağı döndür
+    public Durak getIlkDurak() {
+        return duraklar.isEmpty() ? null : duraklar.get(0);
+    }
+
+    // Son durağı döndür
+    public Durak getSonDurak() {
+        return duraklar.isEmpty() ? null : duraklar.get(duraklar.size() - 1);
     }
 }
