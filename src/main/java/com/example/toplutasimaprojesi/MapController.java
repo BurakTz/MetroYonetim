@@ -44,11 +44,15 @@ public class MapController implements Initializable {
     @FXML
     private FlowPane hatButtonsPane;
 
+    @FXML
+    private Button btnrotaTemizle;
+
     @FXML private Button btnTumHatlar;
     @FXML private Button btnM4;
     @FXML private Button btnM5;
     @FXML private Button btnM8;
     @FXML private Button btnMarmaray;
+
 
     // Aktif olarak seçilen hat
     private String selectedLine = "ALL";
@@ -357,7 +361,6 @@ public class MapController implements Initializable {
             metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari, m5Sureleri);
         }
     }
-
     // Hat seçildiğinde çağrılacak metot
     private void hatSecAction(String hatIsmi) {
         selectedLine = hatIsmi;
@@ -470,6 +473,17 @@ public class MapController implements Initializable {
         if (sonuclar.isEmpty()) {
             durakAramaListView.setItems(FXCollections.observableArrayList("Sonuç bulunamadı."));
         }
+    }
+    @FXML
+    private void btnrotaTemizleButtonAction(ActionEvent event) {
+        // UI temizle
+        rotaListView.getItems().clear();
+        baslangicCombo.getSelectionModel().clearSelection();
+        bitisCombo.getSelectionModel().clearSelection();
+
+        // Harita temizle
+        webEngine.executeScript("clearRoute()");
+        webEngine.executeScript("showOnlyLine('ALL')");
     }
 
     // JavaScript'ten çağrılabilecek metotlar

@@ -169,6 +169,23 @@
         return true;
     };
 
+    // map.html'e ekle
+    window.clearRoute = function() {
+        // Önceki rotayı temizle
+        if (window.currentRoute) {
+            map.removeLayer(window.currentRoute);
+            window.currentRoute = null;
+        }
+
+        // Route marker'ları temizle
+        if (window.routeMarkers) {
+            window.routeMarkers.forEach(marker => map.removeLayer(marker));
+            window.routeMarkers = [];
+        }
+
+        return true;
+    };
+
     // Rota göster (iki istasyon arasındaki en kısa yol)
     window.showRoute = function(routePoints, routeStations) {
         console.log("Rota gösteriliyor:", routePoints);

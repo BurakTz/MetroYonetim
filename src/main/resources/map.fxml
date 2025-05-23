@@ -27,15 +27,16 @@
                                     <content>
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                             <children>
-                                                <VBox layoutX="14.0" layoutY="14.0" prefHeight="669.0" prefWidth="296.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                                <VBox layoutX="14.0" layoutY="6.0" prefHeight="663.0" prefWidth="276.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="6.0">
                                                     <children>
                                                         <Label text="Başlangıç Durağı:" />
                                                         <ComboBox fx:id="baslangicCombo" prefHeight="30.0" prefWidth="300.0" promptText="Başlangıç durağını seçin" />
                                                         <Label text="Bitiş Durağı:" />
                                                         <ComboBox fx:id="bitisCombo" prefHeight="30.0" prefWidth="300.0" promptText="Bitiş durağını seçin" />
                                                         <Button fx:id="rotaBulButton" mnemonicParsing="false" onAction="#rotaBulButtonAction" prefHeight="40.0" prefWidth="300.0" text="Rota Bul" />
+                                          <Button fx:id="btnrotaTemizle" alignment="CENTER" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onAction="#btnrotaTemizleButtonAction" prefHeight="40.0" prefWidth="150.0" text="Rotayı Temizle" />
                                                         <Label text="Rota Sonuçları:" />
-                                                        <ListView fx:id="rotaListView" prefHeight="450.0" prefWidth="300.0" />
+                                                        <ListView fx:id="rotaListView" prefHeight="442.0" prefWidth="276.0" />
                                                     </children>
                                                 </VBox>
                                             </children>
