@@ -154,6 +154,8 @@ public class MetroAgi {
                 durak = durakEkle(durakIsmi, xKoordinat, yKoordinat);
             }
 
+            durak.hatEkle(hatIsmi);
+
             // Hatta ekle
             hat.durakEkle(durak);
 
@@ -167,41 +169,6 @@ public class MetroAgi {
         }
     }
 
-    // Aktarma noktalarını işaretle (birden fazla hatta yer alan duraklar)
-    public void aktarmaNoktalariniIsaretle() {
-        // Her durak için bağlı olduğu hat sayısını bul
-        for (int i = 0; i < durakSayisi; i++) {
-            Durak durak = duraklar[i];
-            // Hangi hatlara ait olduğunu bulmak için set kullanımını simüle edelim
-            String[] baglananHatlar = new String[hatSayisi];
-            int hatSayaci = 0;
-
-            // Bağlantılarını kontrol et
-            BaglantiDurak baglanti = durak.getBaglantiListesi();
-            while (baglanti != null) {
-                // Bu hat daha önce eklendi mi kontrol et
-                boolean hatEklendi = false;
-                for (int j = 0; j < hatSayaci; j++) {
-                    if (baglananHatlar[j].equals(baglanti.getHatIsmi())) {
-                        hatEklendi = true;
-                        break;
-                    }
-                }
-
-                if (!hatEklendi) {
-                    baglananHatlar[hatSayaci] = baglanti.getHatIsmi();
-                    hatSayaci++;
-                }
-
-                baglanti = baglanti.sonraki;
-            }
-
-            // Birden fazla hatta bağlıysa aktarma noktası olarak işaretle
-            if (hatSayaci > 1) {
-                durak.setAktarmaNoktasi(true);
-            }
-        }
-    }
 
     // İki durak arasındaki en kısa yolu bul (BFS algoritması)
     public void enKisaYoluBul(String baslangicIsmi, String bitisIsmi,

@@ -63,7 +63,7 @@ public class MapController implements Initializable {
         metroAgi = MetroAgi.getInstance();
         hatRenkleriOlustur();
         metroHatlariniOlustur();
-        metroAgi.aktarmaNoktalariniIsaretle();
+
 
         // WebView ayarları
         webEngine = mapView.getEngine();
