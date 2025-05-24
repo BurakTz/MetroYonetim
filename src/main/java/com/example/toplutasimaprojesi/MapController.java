@@ -220,12 +220,12 @@ public class MapController implements Initializable {
                     {41.018633, 28.767911}
             };
 
-            int[] marmaraySureleri = {
-                    3, 2, 3, 2, 4, 3, 2, 2, 2, 3, 4, 3, 2, 2, 2, 3, 3, 2, 2, 2,
-                    3, 2, 2, 2, 2, 3, 2, 4, 5, 4, 3, 2, 4, 2, 3, 2, 3, 3, 2, 3, 3, 4
+            int[] marmaraykeys = {
+                    5, 8, 10, 12, 14, 17, 20, 22, 25, 27, 30, 33, 35, 37, 39, 42, 46, 48, 51, 53,
+                    55, 57, 60, 62, 64, 67, 69, 71, 73, 76, 79, 82, 85, 88, 90, 92, 94, 96, 99, 102, 104, 107,109
             };
 
-            metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari, marmaraySureleri);
+            metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari, marmaraykeys);
 
             String[] m4Duraklari = {
                     "Sabiha Gökçen", "Kurtköy", "Yayalar", "Fevzi Çakmak",
@@ -262,11 +262,11 @@ public class MapController implements Initializable {
                     {40.990530, 29.022147}   // Kadıköy
             };
 
-            int[] m4Sureleri = {
-                    3, 3, 3, 2, 2, 2, 3, 2, 3, 2, 2, 2, 2, 3, 3, 2, 2, 3, 2, 3, 3, 2
+            int[] m4keys = {
+                     22, 25, 28, 31, 33, 35, 37, 40, 42, 45, 47, 49, 51, 53, 56, 59, 61, 63, 65, 67, 69, 71, 75
             };
 
-            metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari, m4Sureleri);
+            metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari, m4keys);
 
             String[] m8Duraklari = {
                     "Bostancı",
@@ -300,11 +300,11 @@ public class MapController implements Initializable {
                     {41.031239, 29.152671}   // Parseller
             };
 
-            int[] m8Sureleri = {
-                    2, 2, 3, 2, 3, 3, 3, 2, 2, 2, 2, 2
+            int[] m8keys = {
+                    53, 55, 56, 59, 61, 64, 67, 69, 71, 73, 75, 77
             };
 
-            metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari, m8Sureleri);
+            metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari, m8keys);
 
             String[] m5Duraklari = {
                     "Üsküdar",
@@ -354,11 +354,11 @@ public class MapController implements Initializable {
                     {40.983305, 29.230839}   // Samandıra Merkez
             };
 
-            int[] m5Sureleri = {
-                    2, 2, 3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 3, 3, 2
+            int[] m5keys = {
+                    71, 73, 75, 72, 70, 73, 76, 74, 72, 69, 67, 69, 71, 73, 77, 79, 82, 85, 87, 89, 91
             };
 
-            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari, m5Sureleri);
+            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari, m5keys);
         }
     }
     // Hat seçildiğinde çağrılacak metot

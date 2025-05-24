@@ -6,6 +6,7 @@ import java.util.List;
 // Durak sınıfı (Graf düğümü)
 public class Durak {
     private String isim;
+    public int key;
     private boolean aktarmaNoktasi;
     private double xKoordinat;  // X koordinatı (enlem)
     private double yKoordinat;  // Y koordinatı (boylam)
@@ -14,8 +15,9 @@ public class Durak {
     // ⭐ YENİ: Bu durağın hangi hatlara ait olduğu
     private List<String> hatlar;
 
-    public Durak(String isim, double xKoordinat, double yKoordinat) {
+    public Durak(String isim,int key, double xKoordinat, double yKoordinat) {
         this.isim = isim;
+        this.key=key;
         this.xKoordinat = xKoordinat;
         this.yKoordinat = yKoordinat;
         this.aktarmaNoktasi = false;
@@ -26,6 +28,10 @@ public class Durak {
     // Getter metodları
     public String getIsim() {
         return isim;
+    }
+
+    public int getKey(){
+        return key;
     }
 
     public double getXKoordinat() {
