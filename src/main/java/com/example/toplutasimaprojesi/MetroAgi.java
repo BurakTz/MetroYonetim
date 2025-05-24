@@ -1,6 +1,5 @@
 package com.example.toplutasimaprojesi;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 public class MetroAgi {
     // 1. Singleton instance
@@ -46,7 +45,7 @@ public class MetroAgi {
     }
 
     // Yeni durak ekleme
-    public Durak durakEkle(String isim, double xKoordinat, double yKoordinat) {
+    public Durak durakEkle(String isim,int key, double xKoordinat, double yKoordinat) {
         if (durakSayisi >= maksDurakSayisi) {
             System.out.println("Maksimum durak sayısına ulaşıldı!");
             return null;
@@ -60,7 +59,7 @@ public class MetroAgi {
         }
 
         // Yeni durak ekle
-        Durak yeniDurak = new Durak(isim, xKoordinat, yKoordinat);
+        Durak yeniDurak = new Durak(isim,key,xKoordinat, yKoordinat);
         duraklar[durakSayisi] = yeniDurak;
         durakSayisi++;
         return yeniDurak;
@@ -151,7 +150,7 @@ public class MetroAgi {
 
             // Durak yoksa oluştur
             if (durak == null) {
-                durak = durakEkle(durakIsmi, xKoordinat, yKoordinat);
+                durak = durakEkle(durakIsmi, gecenSure, xKoordinat, yKoordinat);
             }
 
             durak.hatEkle(hatIsmi);
@@ -170,7 +169,8 @@ public class MetroAgi {
     }
 
 
-    // İki durak arasındaki en kısa yolu bul (BFS algoritması)
+    // İki durak arasındaki en kısa yolu bul (Dijkstra algoritması)
+
     public void enKisaYoluBul(String baslangicIsmi, String bitisIsmi,
                               List<String> rotaBilgileri,
                               List<Object[]> rotaKoordinatlari) {
@@ -182,109 +182,135 @@ public class MetroAgi {
             return;
         }
 
-        boolean[] ziyaretEdildi = new boolean[durakSayisi];
+        double[] mesafeler = new double[durakSayisi];
         Durak[] ebeveyn = new Durak[durakSayisi];
         String[] kullanilanHat = new String[durakSayisi];
-        Durak[] kuyruk = new Durak[durakSayisi];
-        int bas = 0, son = 0;
+        boolean[] ziyaretEdildi = new boolean[durakSayisi];
 
+        Arrays.fill(mesafeler, Double.MAX_VALUE);
+
+        int baslangicIndeks = -1;
         for (int i = 0; i < durakSayisi; i++) {
             if (duraklar[i] == baslangic) {
-                ziyaretEdildi[i] = true;
+                mesafeler[i] = 0;
+                baslangicIndeks = i;
                 break;
             }
         }
-        kuyruk[son++] = baslangic;
 
-        boolean yolBulundu = false;
-        while (bas < son) {
-            Durak mevcutDurak = kuyruk[bas++];
+        PriorityQueue<Integer> pq = new PriorityQueue<>(Comparator.comparingDouble(i -> mesafeler[i]));
+        pq.add(baslangicIndeks);
 
-            if (mevcutDurak == bitis) {
-                yolBulundu = true;
-                break;
-            }
+        while (!pq.isEmpty()) {
+            int mevcutIndeks = pq.poll();
 
+            if (ziyaretEdildi[mevcutIndeks]) continue;
+            ziyaretEdildi[mevcutIndeks] = true;
+
+            Durak mevcutDurak = duraklar[mevcutIndeks];
             BaglantiDurak baglanti = mevcutDurak.getBaglantiListesi();
-            while (baglanti != null) {
-                Durak baglantiDurak = baglanti.getDurak();
 
-                int baglantiIndeks = -1;
+            while (baglanti != null) {
+                Durak komsuDurak = baglanti.getDurak();
+
+                int komsuIndeks = -1;
                 for (int i = 0; i < durakSayisi; i++) {
-                    if (duraklar[i] == baglantiDurak) {
-                        baglantiIndeks = i;
+                    if (duraklar[i] == komsuDurak) {
+                        komsuIndeks = i;
                         break;
                     }
                 }
 
-                if (baglantiIndeks != -1 && !ziyaretEdildi[baglantiIndeks]) {
-                    ziyaretEdildi[baglantiIndeks] = true;
-                    ebeveyn[baglantiIndeks] = mevcutDurak;
-                    kullanilanHat[baglantiIndeks] = baglanti.getHatIsmi();
-                    kuyruk[son++] = baglantiDurak;
+                if (komsuIndeks != -1) {
+                    double agirlik = Math.abs(mevcutDurak.getKey() - komsuDurak.getKey()); // süre gibi
+                    double yeniMesafe = mesafeler[mevcutIndeks] + agirlik;
+
+                    if (yeniMesafe < mesafeler[komsuIndeks]) {
+                        mesafeler[komsuIndeks] = yeniMesafe;
+                        ebeveyn[komsuIndeks] = mevcutDurak;
+                        kullanilanHat[komsuIndeks] = baglanti.getHatIsmi();
+                        pq.add(komsuIndeks);
+                    }
                 }
 
                 baglanti = baglanti.sonraki;
             }
         }
 
-        if (!yolBulundu) {
+        int bitisIndeks = -1;
+        for (int i = 0; i < durakSayisi; i++) {
+            if (duraklar[i] == bitis) {
+                bitisIndeks = i;
+                break;
+            }
+        }
+
+        if (mesafeler[bitisIndeks] == Double.MAX_VALUE) {
             rotaBilgileri.add("Bu iki durak arasında yol bulunamadı!");
             return;
         }
 
-        Durak[] yol = new Durak[durakSayisi];
-        String[] hatlar = new String[durakSayisi];
-        int yolUzunlugu = 0;
-
+        // Geriye doğru yolu kur
+        List<Durak> yol = new ArrayList<>();
+        List<String> hatlar = new ArrayList<>();
         Durak mevcutDurak = bitis;
-        while (mevcutDurak != baslangic) {
-            yol[yolUzunlugu] = mevcutDurak;
 
-            int mevcutIndeks = -1;
-            for (int i = 0; i < durakSayisi; i++) {
-                if (duraklar[i] == mevcutDurak) {
-                    mevcutIndeks = i;
-                    break;
-                }
+// Baştan indeks al:
+        int mevcutIndeks = -1;
+        for (int i = 0; i < durakSayisi; i++) {
+            if (duraklar[i] == mevcutDurak) {
+                mevcutIndeks = i;
+                break;
             }
-
-            hatlar[yolUzunlugu] = kullanilanHat[mevcutIndeks];
-            mevcutDurak = ebeveyn[mevcutIndeks];
-            yolUzunlugu++;
         }
 
-        yol[yolUzunlugu++] = baslangic;
+// Geri izleme: başlangıca kadar
+        while (mevcutDurak != null) {
+            yol.add(mevcutDurak);
+            hatlar.add(kullanilanHat[mevcutIndeks]);
+
+            // Ebeveyni al
+            mevcutDurak = ebeveyn[mevcutIndeks];
+
+            // Yeni indeks bulun
+            if (mevcutDurak != null) {
+                for (int i = 0; i < durakSayisi; i++) {
+                    if (duraklar[i] == mevcutDurak) {
+                        mevcutIndeks = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        Collections.reverse(yol);
+        Collections.reverse(hatlar);
 
         rotaBilgileri.add("En kısa yol (" + baslangicIsmi + " -> " + bitisIsmi + "):");
 
         String aktifHat = null;
-        for (int i = yolUzunlugu - 1; i >= 0; i--) {
-            if (i < yolUzunlugu - 1) {
-                String hat = hatlar[i];
-                if (aktifHat == null || !aktifHat.equals(hat)) {
+        for (int i = 0; i < yol.size(); i++) {
+            Durak d = yol.get(i);
+
+            if (i > 0) {
+                String hat = hatlar.get(i);
+                if (hat != null && (aktifHat == null || !aktifHat.equals(hat))) {
                     aktifHat = hat;
                     rotaBilgileri.add("  [" + hat + " hattına geç]");
                 }
             }
 
-            Durak d = yol[i];
-            rotaBilgileri.add("  " + (yolUzunlugu - i) + ". " + d.getIsim() +
+            rotaBilgileri.add("  " + (i + 1) + ". " + d.getIsim() +
                     (d.isAktarmaNoktasi() ? " (Aktarma Noktası)" : "") +
                     " [" + d.getXKoordinat() + ", " + d.getYKoordinat() + "]");
-
             rotaKoordinatlari.add(new Object[]{d.getXKoordinat(), d.getYKoordinat()});
         }
 
-        rotaBilgileri.add("Toplam " + (yolUzunlugu - 1) + " durak.");
-
-        double toplamMesafe = 0.0;
-        for (int i = yolUzunlugu - 1; i > 0; i--) {
-            toplamMesafe += yol[i].mesafeHesapla(yol[i - 1]);
-        }
-
-        rotaBilgileri.add("Toplam mesafe: " + String.format("%.2f", toplamMesafe) + " birim.");
+        rotaBilgileri.add("Toplam " + (yol.size() - 1) + " durak.");
+        rotaBilgileri.add("Toplam süre (key farkları): " +
+                String.format("%.0f", mesafeler[bitisIndeks]+2) + " dakika.");
     }
+
 
 
     // Tüm hatları ve durakları yazdır
