@@ -17,7 +17,7 @@ public class Main extends Application {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/karsilama_ekrani.fxml"));
             Parent root = loader.load();
 
-            // Kontrolcü sınıfını al ve Stage'i ilet
+            // ✅ DOĞRU: KarsilamaEkraniController olarak cast et
             KarsilamaEkraniController controller = loader.getController();
             controller.setMainStage(stage);
 

@@ -21,6 +21,50 @@
             border: 3px solid orange;
             border-radius: 50%;
         }
+
+        /* Metro istasyon marker'ları */
+        .metro-station-marker {
+            cursor: pointer !important;
+            z-index: 500 !important;
+            transition: transform 0.2s ease;
+        }
+
+        .metro-station-marker:hover {
+            transform: scale(1.2);
+        }
+
+        .metro-station-label {
+            pointer-events: none;
+            z-index: 499 !important;
+        }
+
+        /* Rota durak marker'ları için stil */
+        .route-station-marker {
+            cursor: pointer !important;
+            z-index: 1000 !important;
+        }
+
+        .route-station-label {
+            pointer-events: none;
+            z-index: 999 !important;
+        }
+
+        /* Hover efekti */
+        .route-station-marker:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+
+        /* Aktarma istasyonu animasyonu */
+        .metro-station-marker.transfer {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -32,6 +76,10 @@
     let metroLines = {};
     let stations = {};
 
+    // Rota kontrolü için global değişkenler
+    let isRouteVisible = false;
+    let currentRouteData = null;
+
     window.onload = function() {
         // İstanbul'un merkezini alıyoruz (Kadıköy civarı)
         map = L.map('map').setView([41.010, 29.030], 12);
@@ -42,7 +90,6 @@
 
         console.log("Harita başlatıldı");
 
-        // Yeni eklenen kod buraya gelecek
         // Haritaya tıklama olayını dinle ve tıklanan konumu göster
         map.on('click', function(e) {
             // Daha önce bir tıklama işaretçisi varsa kaldır
@@ -74,36 +121,89 @@
         });
     };
 
-    // Java tarafından çağrılacak fonksiyonlar
+    // Önemli istasyon kontrolü
+    function isImportantStation(stationName) {
+        const importantStations = [
+            'Kadıköy', 'Üsküdar', 'Bostancı', 'Kartal', 'Pendik',
+            'Sabiha Gökçen', 'Gebze', 'Halkalı', 'Yenikapı', 'Sirkeci'
+        ];
+        return importantStations.some(important =>
+            stationName.includes(important) || important.includes(stationName)
+        );
+    }
 
-    // İstasyon ekle
+    // İstasyon ekle - Tüm durakların isimleri görünür
     window.addStation = function(name, lat, lon, isTransfer) {
         console.log("İstasyon ekleniyor:", name, lat, lon, isTransfer);
 
-        // Marker options
-        let markerOptions = {};
+        let markerColor = isTransfer ? '#e67e22' : '#3498db';
+        let borderColor = isTransfer ? '#d35400' : '#2980b9';
+        let icon = isTransfer ? '🔄' : '🚉';
 
-        if (isTransfer) {
-            // Aktarma istasyonu için özel ikon
-            markerOptions.icon = L.divIcon({
-                className: 'transfer-station',
-                html: '<div style="background-color: white; width: 12px; height: 12px; border-radius: 50%;"></div>',
-                iconSize: [18, 18]
-            });
-        }
+        // Marker oluştur
+        let marker = L.marker([lat, lon], {
+            icon: L.divIcon({
+                className: 'metro-station-marker',
+                html: `<div style="
+                    background: linear-gradient(135deg, ${markerColor}, ${borderColor});
+                    color: white;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    z-index: 500;
+                ">${icon}</div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            })
+        }).addTo(map);
 
-        // Burada koordinatların doğru sırada eklenmesi gerekiyor
-        // lat -> enlem (xKoordinat), lon -> boylam (yKoordinat)
-        let marker = L.marker([lat, lon], markerOptions).addTo(map);
-        marker.bindPopup('<div class="station-popup">' + name +
-            (isTransfer ? ' (Aktarma İstasyonu)' : '') + '</div>');
+        // TÜM DURAKLAR İÇİN LABEL
+        let labelMarker = L.marker([lat, lon], {
+            icon: L.divIcon({
+                className: 'metro-station-label',
+                html: `<div style="
+                    background-color: rgba(255, 255, 255, 0.9);
+                    color: #2c3e50;
+                    padding: 2px 5px;
+                    border-radius: 6px;
+                    border: 1px solid ${markerColor};
+                    font-size: 9px;
+                    font-weight: bold;
+                    text-align: center;
+                    white-space: nowrap;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                    min-width: 40px;
+                    max-width: 90px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                ">${name.length > 12 ? name.substring(0, 12) + '...' : name}</div>`,
+                iconSize: [0, 0],
+                iconAnchor: [-5, 25]
+            })
+        }).addTo(map);
+
+        marker.bindPopup(`
+            <div style="text-align: center;">
+                <strong style="color: ${markerColor};">${name}</strong><br>
+                <span style="color: #666;">
+                    ${isTransfer ? '🔄 Aktarma İstasyonu' : '🚉 Metro İstasyonu'}
+                </span>
+            </div>
+        `);
 
         // İstasyonu kaydet
         stations[name] = {
             marker: marker,
+            labelMarker: labelMarker, // Label kaydet
             position: [lat, lon],
             isTransfer: isTransfer,
-            lines: [] // Durağın hangi hatlara ait olduğunu takip etmek için boş dizi ekle
+            lines: []
         };
 
         return true;
@@ -116,7 +216,7 @@
             color: color,
             stations: [],
             polylines: [],
-            visible: true // Varsayılan olarak tüm hatlar görünür
+            visible: true
         };
         return true;
     };
@@ -142,14 +242,13 @@
             stations[stationName].lines.push(lineName);
         }
 
-        // İki istasyon arasında bağlantı çiz (eğer hat içinde en az 2 istasyon varsa)
+        // İki istasyon arasında bağlantı çiz
         let line = metroLines[lineName];
         if (line.stations.length >= 2) {
             let stationA = stations[line.stations[line.stations.length - 2]];
             let stationB = stations[stationName];
 
             console.log("Bağlantı çiziliyor:", line.stations[line.stations.length - 2], "->", stationName);
-            console.log("Koordinatlar:", stationA.position, "->", stationB.position);
 
             let polyline = L.polyline([stationA.position, stationB.position], {
                 color: line.color,
@@ -169,7 +268,141 @@
         return true;
     };
 
-    // map.html'e ekle
+    // Rotayı göster/gizle
+    window.toggleRoute = function(show) {
+        console.log("Rota toggle:", show);
+        if (window.currentRoute) {
+            if (show) {
+                map.addLayer(window.currentRoute);
+                isRouteVisible = true;
+                console.log("Rota gösterildi");
+            } else {
+                map.removeLayer(window.currentRoute);
+                isRouteVisible = false;
+                console.log("Rota gizlendi");
+            }
+        }
+        return isRouteVisible;
+    };
+
+    // Rota durumunu kontrol et
+    window.isRouteShown = function() {
+        return isRouteVisible;
+    };
+
+    // Rota üzerindeki durakları isimlerle birlikte göster
+    window.showRouteStations = function(routeStationNames) {
+        console.log("Rota durakları gösteriliyor:", routeStationNames);
+
+        // Rota durakları için marker'lar ve label'lar
+        if (!window.routeStationMarkers) {
+            window.routeStationMarkers = [];
+        }
+        if (!window.routeStationLabels) {
+            window.routeStationLabels = [];
+        }
+
+        // Önceki rota marker ve label'larını temizle
+        window.routeStationMarkers.forEach(marker => map.removeLayer(marker));
+        window.routeStationLabels.forEach(label => map.removeLayer(label));
+        window.routeStationMarkers = [];
+        window.routeStationLabels = [];
+
+        // Rota üzerindeki her durak için marker + label ekle
+        routeStationNames.forEach((stationName, index) => {
+            if (stations[stationName]) {
+                const station = stations[stationName];
+                const isFirst = index === 0;
+                const isLast = index === routeStationNames.length - 1;
+
+                // MARKER OLUŞTUR
+                const routeMarker = L.marker(station.position, {
+                    icon: L.divIcon({
+                        className: 'route-station-marker',
+                        html: `<div style="
+                            background-color: ${isFirst ? '#4CAF50' : isLast ? '#F44336' : '#FF6B6B'};
+                            color: white;
+                            width: 26px;
+                            height: 26px;
+                            border-radius: 50%;
+                            border: 3px solid white;
+                            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            font-size: 12px;
+                            z-index: 1000;
+                        ">${isFirst ? '🚇' : isLast ? '🏁' : index + 1}</div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    })
+                }).addTo(map);
+
+                // İSİM LABEL'I OLUŞTUR
+                const labelMarker = L.marker(station.position, {
+                    icon: L.divIcon({
+                        className: 'route-station-label',
+                        html: `<div style="
+                            background-color: rgba(255, 255, 255, 0.95);
+                            color: #2c3e50;
+                            padding: 3px 6px;
+                            border-radius: 8px;
+                            border: 1px solid ${isFirst ? '#4CAF50' : isLast ? '#F44336' : '#FF6B6B'};
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-align: center;
+                            white-space: nowrap;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                            min-width: 50px;
+                            max-width: 80px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        ">${stationName.length > 10 ? stationName.substring(0, 10) + '...' : stationName}</div>`,
+                        iconSize: [0, 0],
+                        iconAnchor: [-5, 30]
+                    })
+                }).addTo(map);
+
+                // POPUP EKLE
+                routeMarker.bindPopup(`
+                    <div style="text-align: center; min-width: 150px;">
+                        <strong style="color: ${isFirst ? '#4CAF50' : isLast ? '#F44336' : '#FF6B6B'};">
+                            ${stationName}
+                        </strong><br>
+                        <span style="color: #666;">
+                            ${isFirst ? '🚇 Başlangıç Durağı' : isLast ? '🏁 Bitiş Durağı' : `🚉 Durak ${index + 1}`}
+                        </span>
+                        ${station.isTransfer ? '<br><span style="color: orange;">🔄 Aktarma Noktası</span>' : ''}
+                    </div>
+                `);
+
+                window.routeStationMarkers.push(routeMarker);
+                window.routeStationLabels.push(labelMarker);
+            }
+        });
+
+        console.log(`${routeStationNames.length} rota durağı ve label'ı eklendi`);
+        return true;
+    };
+
+    // Rota durakları ve label'ları temizle
+    window.clearRouteStations = function() {
+        if (window.routeStationMarkers) {
+            window.routeStationMarkers.forEach(marker => map.removeLayer(marker));
+            window.routeStationMarkers = [];
+        }
+
+        if (window.routeStationLabels) {
+            window.routeStationLabels.forEach(label => map.removeLayer(label));
+            window.routeStationLabels = [];
+        }
+
+        console.log("Rota durakları ve label'ları temizlendi");
+        return true;
+    };
+
+    // Rota temizleme
     window.clearRoute = function() {
         // Önceki rotayı temizle
         if (window.currentRoute) {
@@ -183,12 +416,19 @@
             window.routeMarkers = [];
         }
 
+        // Rota durakları temizle
+        window.clearRouteStations();
+
+        // Rota durumunu sıfırla
+        isRouteVisible = false;
+        currentRouteData = null;
+
         return true;
     };
 
-    // Rota göster (iki istasyon arasındaki en kısa yol)
+    // Rota göster
     window.showRoute = function(routePoints, routeStations) {
-        console.log("Rota gösteriliyor:", routePoints);
+        console.log("Rota oluşturuluyor:", routePoints);
 
         // Önceki rotayı temizle
         if (window.currentRoute) {
@@ -201,27 +441,64 @@
 
         window.routeMarkers = [];
 
-        // Yeni rotayı çiz
+        // Rota verisini sakla
+        currentRouteData = {
+            points: routePoints,
+            stations: routeStations
+        };
+
+        // Yeni rotayı oluştur AMA haritaya EKLEME
         window.currentRoute = L.polyline(routePoints, {
-            color: '#FF4500',
-            weight: 5,
+            color: '#FF6B6B',      // Pastel kırmızı
+            weight: 4,
             opacity: 0.8,
-            dashArray: '10, 10',
+            dashArray: '8, 8',     // Kesikli çizgi
             lineJoin: 'round'
-        }).addTo(map);
+        });
+
+        // İlk başta gizli
+        isRouteVisible = false;
 
         // Rota sınırlarına yakınlaş
         map.fitBounds(window.currentRoute.getBounds(), {
-            padding: [50, 50]
+            padding: [30, 30]
         });
 
+        console.log("Rota oluşturuldu ama gizli");
         return true;
     };
 
+    // Tüm hatları gizle (rota modu) - Label'ları da gizle
+    window.hideAllLines = function() {
+        console.log("Tüm hatlar gizleniyor (rota modu)");
+
+        // Tüm hat çizgilerini gizle
+        for(let name in metroLines) {
+            const line = metroLines[name];
+            line.polylines.forEach(polyline => {
+                map.removeLayer(polyline);
+            });
+            line.visible = false;
+        }
+
+        // Tüm istasyonları ve LABEL'LARINI gizle
+        for(let stationName in stations) {
+            const station = stations[stationName];
+            map.removeLayer(station.marker);
+
+            // Label'ları da gizle
+            if (station.labelMarker) {
+                map.removeLayer(station.labelMarker);
+            }
+        }
+
+        console.log("Tüm hatlar ve label'lar gizlendi, sadece rota görünür");
+        return true;
+    };
+
+    // Hat gösterimi - label kontrolü eklendi
     window.showOnlyLine = function(lineName){
         console.log("Sadece hat gösteriliyor:", lineName);
-
-        // Mevcut görünürlük durumunu kaydet
         currentVisibleLine = lineName;
 
         for(let name in metroLines) {
@@ -235,8 +512,6 @@
                     map.removeLayer(polyline);
                 }
             });
-
-            // Görünürlük durumunu güncelle
             line.visible = shouldBeVisible;
         }
 
@@ -244,12 +519,18 @@
         for(let stationName in stations){
             const station = stations[stationName];
 
-            // İstasyon hat bilgisi yoksa veya seçilen hatta ait değilse gizle
             if (lineName !== "ALL" && (!station.lines || !station.lines.includes(lineName))) {
                 map.removeLayer(station.marker);
+                // Label'ı da gizle
+                if (station.labelMarker) {
+                    map.removeLayer(station.labelMarker);
+                }
             } else {
-                // İstasyonu görünür yap
                 map.addLayer(station.marker);
+                // Label'ı da göster
+                if (station.labelMarker) {
+                    map.addLayer(station.labelMarker);
+                }
             }
         }
 
