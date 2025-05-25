@@ -111,3 +111,47 @@
     -fx-content-display: left;
     -fx-graphic-text-gap: 5;
 }
+
+/* Rota durak marker'ları için stil */
+.route-station-marker {
+    cursor: pointer !important;
+    z-index: 1000 !important;
+}
+
+.route-station-label {
+    pointer-events: none; /* Tıklanamaz, sadece görsel */
+    z-index: 999 !important;
+}
+
+/* Hover efekti */
+.route-station-marker:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+/* Metro istasyon marker'ları */
+.metro-station-marker {
+    cursor: pointer !important;
+    z-index: 500 !important;
+    transition: transform 0.2s ease;
+}
+
+.metro-station-marker:hover {
+    transform: scale(1.2);
+}
+
+.metro-station-label {
+    pointer-events: none;
+    z-index: 499 !important;
+}
+
+/* Aktarma istasyonu animasyonu */
+.metro-station-marker.transfer {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
