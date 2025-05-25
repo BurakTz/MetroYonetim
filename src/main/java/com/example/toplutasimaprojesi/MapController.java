@@ -6,8 +6,11 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
@@ -15,8 +18,10 @@ import netscape.javascript.JSObject;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 public class MapController implements Initializable {
 
@@ -61,6 +66,19 @@ public class MapController implements Initializable {
     @FXML private Button btnMarmaray;
     @FXML private Button rotaBulButton;
 
+    // Ara duraklar için yeni alanlar
+    @FXML
+    private VBox araDuraklarContainer;
+
+    @FXML
+    private Button durakEkleButton;
+
+    @FXML
+    private ScrollPane araDurakScrollPane;
+
+    @FXML
+    private Label araDurakSayisiLabel;
+
     // Aktif olarak seçilen hat
     private String selectedLine = "ALL";
 
@@ -74,6 +92,23 @@ public class MapController implements Initializable {
     // YENİ: Hash table ve utility fonksiyonları
     private PrimeHashTable primeHashTable;
     private int[] primeSayilar = {2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101};
+
+    // Ara duraklar için
+    private List<AraDurakBileseni> araDuraklar = new ArrayList<>();
+    private int araDurakSayaci = 1;
+
+    // Inner class - AraDurakBileseni
+    private static class AraDurakBileseni {
+        TextField textField;
+        ListView<String> listView;
+        VBox container;
+        Button silButton;
+        int durakNo;
+
+        AraDurakBileseni(int no) {
+            this.durakNo = no;
+        }
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -111,6 +146,9 @@ public class MapController implements Initializable {
             System.out.println("TextField listener'ları kuruluyor...");
             textFieldListenersKur();
             System.out.println("TextField listener'ları kuruldu");
+
+            // Ara durak sayısı label'ını başlat
+            araDurakSayisiniGuncelle();
 
             System.out.println("Initialize tamamlandı!");
 
@@ -191,9 +229,8 @@ public class MapController implements Initializable {
         hatRenkleri.put("Marmaray", "#0075C9");
     }
 
-    // Metro hatlarını oluştur (aynı kod...)
+    // Metro hatlarını oluştur
     private void metroHatlariniOlustur() {
-        // Mevcut kod aynı kalıyor...
         String[] marmarayDuraklari = {
                 "Gebze", "Darıca", "Osmangazi", "GTÜ – Fatih", "Cayırova", "Tuzla",
                 "İçmeler", "Aydıntepe", "Güzelyalı", "Tersane", "Kaynarca", "Pendik",
@@ -332,6 +369,179 @@ public class MapController implements Initializable {
         hatDuraklariListView.setItems(duraklar);
     }
 
+    // Ara durak sayısını güncelleme metodu
+    private void araDurakSayisiniGuncelle() {
+        if (araDurakSayisiLabel != null) {
+            int sayi = araDuraklar.size();
+            if (sayi == 0) {
+                araDurakSayisiLabel.setText("0 ara durak");
+                araDurakSayisiLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+            } else {
+                araDurakSayisiLabel.setText(sayi + " ara durak eklendi");
+                araDurakSayisiLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #28a745; -fx-font-weight: bold;");
+            }
+        }
+    }
+
+    // Ara durak ekleme butonu action
+    @FXML
+    private void durakEkleButtonAction(ActionEvent event) {
+        System.out.println("DEBUG: Ara durak ekleniyor. Mevcut sayı: " + araDuraklar.size());
+
+        if (araDuraklar.size() >= 8) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Uyarı");
+            alert.setHeaderText("Maksimum Durak Sayısı");
+            alert.setContentText("En fazla 8 ara durak ekleyebilirsiniz.\n\nDaha fazla durak eklemek için önce mevcut durakları silin.");
+            alert.showAndWait();
+            return;
+        }
+
+        AraDurakBileseni yeniDurak = araDurakBileseniOlustur();
+        araDuraklar.add(yeniDurak);
+        araDuraklarContainer.getChildren().add(yeniDurak.container);
+
+        // Sayı label'ını güncelle
+        araDurakSayisiniGuncelle();
+
+        // ScrollPane'i en alta kaydır
+        Platform.runLater(() -> {
+            araDurakScrollPane.setVvalue(1.0);
+        });
+
+        System.out.println("DEBUG: Ara durak eklendi. Yeni sayı: " + araDuraklar.size());
+    }
+
+    // Ara durak bileşeni oluşturma
+    private AraDurakBileseni araDurakBileseniOlustur() {
+        AraDurakBileseni bilesen = new AraDurakBileseni(araDurakSayaci++);
+
+        // TextField oluştur - BÜYÜTÜLMÜŞ
+        bilesen.textField = new TextField();
+        bilesen.textField.setPromptText("🔍 Ara durak " + bilesen.durakNo + " adını yazın...");
+        bilesen.textField.setPrefHeight(40.0); // 35'ten 40'a
+        bilesen.textField.setPrefWidth(250.0); // Genişlik eklendi
+        bilesen.textField.setStyle("-fx-font-size: 14px; -fx-background-radius: 12px; " +
+                "-fx-border-radius: 12px; -fx-border-color: #ffc107; " +
+                "-fx-border-width: 2px; -fx-background-color: #fffef7; " +
+                "-fx-prompt-text-fill: #6c757d;");
+
+        // ListView oluştur - BÜYÜTÜLMÜŞ
+        bilesen.listView = new ListView<>();
+        bilesen.listView.setPrefHeight(100); // 80'den 100'e
+        bilesen.listView.setStyle("-fx-background-radius: 12px; -fx-border-radius: 12px; " +
+                "-fx-border-color: #ffc107; -fx-border-width: 2px; " +
+                "-fx-background-color: #fffef7; -fx-font-size: 13px;");
+
+        // Sil butonu - GELİŞTİRİLMİŞ
+        bilesen.silButton = new Button("🗑️ Sil");
+        bilesen.silButton.setPrefHeight(40.0); // 35'ten 40'a
+        bilesen.silButton.setPrefWidth(90.0); // 80'den 90'a
+        bilesen.silButton.setStyle("-fx-background-color: linear-gradient(to bottom, #f8d7da, #f1aeb5); " +
+                "-fx-text-fill: #721c24; -fx-font-size: 12px; -fx-font-weight: bold; " +
+                "-fx-background-radius: 12px; -fx-border-radius: 12px; " +
+                "-fx-border-color: #e2a8a8; -fx-border-width: 1px;");
+        bilesen.silButton.setOnAction(e -> araDurakSil(bilesen));
+
+        // Container oluştur - GELİŞTİRİLMİŞ
+        bilesen.container = new VBox(8); // spacing 5'ten 8'e
+        bilesen.container.setStyle("-fx-background-color: #fff; -fx-background-radius: 10px; " +
+                "-fx-border-radius: 10px; -fx-border-color: #dee2e6; " +
+                "-fx-border-width: 1px; -fx-padding: 10px;");
+
+        // Label - GELİŞTİRİLMİŞ
+        Label durakLabel = new Label("📍 Ara Durak " + bilesen.durakNo);
+        durakLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff8c00;");
+
+        // TextField ve Sil butonu için HBox
+        HBox inputBox = new HBox(10); // spacing 8'den 10'a
+        inputBox.setAlignment(Pos.CENTER_LEFT);
+        inputBox.getChildren().addAll(bilesen.textField, bilesen.silButton);
+
+        bilesen.container.getChildren().addAll(durakLabel, inputBox, bilesen.listView);
+
+        // TextField listener kur
+        setupAraDurakListener(bilesen);
+
+        // ListView click listener
+        bilesen.listView.setOnMouseClicked(e -> {
+            String selected = bilesen.listView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                bilesen.textField.setText(selected);
+                bilesen.listView.getItems().clear();
+            }
+        });
+
+        return bilesen;
+    }
+
+    // Ara durak silme
+    private void araDurakSil(AraDurakBileseni bilesen) {
+        araDuraklarContainer.getChildren().remove(bilesen.container);
+        araDuraklar.remove(bilesen);
+
+        // Sayı label'ını güncelle
+        araDurakSayisiniGuncelle();
+
+        // Durak numaralarını yeniden düzenle
+        araDurakSayaci = 1;
+        for (AraDurakBileseni aradurak : araDuraklar) {
+            aradurak.durakNo = araDurakSayaci++;
+            // Label'ı güncelle
+            VBox container = aradurak.container;
+            Label label = (Label) container.getChildren().get(0);
+            label.setText("📍 Ara Durak " + aradurak.durakNo);
+
+            // TextField placeholder'ını güncelle
+            aradurak.textField.setPromptText("🔍 Ara durak " + aradurak.durakNo + " adını yazın...");
+        }
+    }
+
+    // Ara durak için arama listener'ı kurma
+    private void setupAraDurakListener(AraDurakBileseni bilesen) {
+        bilesen.textField.textProperty().addListener((obs, oldText, newText) -> {
+            ArrayList<String> sonuclar = twoPhaseSearch(newText);
+            bilesen.listView.getItems().clear();
+            if (!sonuclar.isEmpty()) {
+                bilesen.listView.getItems().addAll(sonuclar);
+            }
+        });
+    }
+
+    // Tüm durak listesini alma (rota için)
+    private List<String> tumRotaDuraklariniAl() {
+        List<String> rotaDuraklari = new ArrayList<>();
+
+        // Başlangıç durağı
+        String baslangic = baslangicTextField.getText().trim();
+        if (!baslangic.isEmpty()) {
+            rotaDuraklari.add(baslangic);
+            System.out.println("DEBUG: Başlangıç durağı: " + baslangic);
+        }
+
+        // Ara duraklar
+        for (int i = 0; i < araDuraklar.size(); i++) {
+            AraDurakBileseni ara = araDuraklar.get(i);
+            String araDurak = ara.textField.getText().trim();
+            if (!araDurak.isEmpty()) {
+                rotaDuraklari.add(araDurak);
+                System.out.println("DEBUG: Ara durak " + (i+1) + ": " + araDurak);
+            }
+        }
+
+        // Bitiş durağı
+        String bitis = bitisTextField.getText().trim();
+        if (!bitis.isEmpty()) {
+            rotaDuraklari.add(bitis);
+            System.out.println("DEBUG: Bitiş durağı: " + bitis);
+        }
+
+        System.out.println("DEBUG: Toplam durak sayısı: " + rotaDuraklari.size());
+        System.out.println("DEBUG: Durak listesi: " + rotaDuraklari);
+
+        return rotaDuraklari;
+    }
+
     // GÜNCELLENEN: Rota bul button action
     @FXML
     private void rotaBulButtonAction(ActionEvent event) {
@@ -347,62 +557,153 @@ public class MapController implements Initializable {
         }
     }
 
+    // Gelişmiş validasyon metodu
+    private boolean rotaValidasyonu() {
+        List<String> tumDuraklar = tumRotaDuraklariniAl();
+
+        if (tumDuraklar.size() < 2) {
+            showAlert("Uyarı", "Durak Seçimi Eksik",
+                    "En az başlangıç ve bitiş durağını seçin.");
+            return false;
+        }
+
+        // Tekrarlanan durak kontrolü
+        Set<String> benzersizDuraklar = new HashSet<>(tumDuraklar);
+        if (benzersizDuraklar.size() != tumDuraklar.size()) {
+            showAlert("Uyarı", "Tekrarlanan Durak",
+                    "Aynı durağı birden fazla kez seçtiniz. Lütfen kontrol edin.");
+            return false;
+        }
+
+        // Durakların var olup olmadığını kontrol et
+        for (String durakIsmi : tumDuraklar) {
+            if (metroAgi.durakBul(durakIsmi) == null) {
+                showAlert("Hata", "Durak Bulunamadı",
+                        "'" + durakIsmi + "' durağı bulunamadı.");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Alert helper metodu
+    private void showAlert(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
     // YENİ: Normal rota bulma işlemi
     private void performRouteSearch() {
-        String baslangic = baslangicTextField.getText();
-        String bitis = bitisTextField.getText();
-
-        if (baslangic == null || bitis == null || baslangic.trim().isEmpty() || bitis.trim().isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Uyarı");
-            alert.setHeaderText("Durak Seçimi Eksik");
-            alert.setContentText("Lütfen başlangıç ve bitiş duraklarını seçin.");
-            alert.showAndWait();
+        if (!rotaValidasyonu()) {
             return;
         }
 
-        // Listeleri oluştur
+        List<String> tumDuraklar = tumRotaDuraklariniAl();
         List<String> rotaBilgileri = new ArrayList<>();
         List<Object[]> rotaKoordinatlari = new ArrayList<>();
 
-        // MetroAgi'den rotayı bul
-        metroAgi.enKisaYoluBul(baslangic, bitis, rotaBilgileri, rotaKoordinatlari);
+        try {
+            if (tumDuraklar.size() == 2) {
+                // Normal tek segment rota
+                System.out.println("DEBUG: Tek segment rota hesaplanıyor");
+                metroAgi.enKisaYoluBul(tumDuraklar.get(0), tumDuraklar.get(1),
+                        rotaBilgileri, rotaKoordinatlari);
+            } else {
+                // Çoklu durak rotası
+                System.out.println("DEBUG: Çoklu durak rotası hesaplanıyor: " + tumDuraklar.size() + " durak");
+                metroAgi.cokluDurakRotasi(tumDuraklar, rotaBilgileri, rotaKoordinatlari);
+            }
 
-        // Ekrana yaz
+            if (rotaKoordinatlari.isEmpty()) {
+                showAlert("Hata", "Rota Bulunamadı",
+                        "Seçilen duraklar arasında geçerli bir rota bulunamadı.");
+                return;
+            }
+
+            // UI güncelleme
+            updateUIWithRoute(rotaBilgileri, rotaKoordinatlari);
+
+        } catch (Exception e) {
+            System.err.println("HATA: Rota hesaplama sırasında hata: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Hata", "Rota Hesaplama Hatası",
+                    "Rota hesaplanırken bir hata oluştu: " + e.getMessage());
+        }
+    }
+
+    // UI güncelleme metodu
+    private void updateUIWithRoute(List<String> rotaBilgileri, List<Object[]> rotaKoordinatlari) {
+        // Sonuçları göster
         rotaListView.setItems(FXCollections.observableArrayList(rotaBilgileri));
 
-        // ✅ YENİ: Rota durak isimlerini çıkar
+        // Rota durak isimlerini çıkar
         List<String> rotaDuraklari = extractRouteStationNames(rotaBilgileri);
 
-        // Haritaya rota koordinatları gönder
+        // JavaScript'e gönder
+        sendRouteToMap(rotaKoordinatlari, rotaDuraklari);
+
+        // UI durumunu güncelle
+        updateRotaButton();
+        webEngine.executeScript("showOnlyLine('ALL')");
+        selectedLine = "ALL";
+        hatDuraklariListView.setItems(FXCollections.observableArrayList());
+
+        System.out.println("DEBUG: Rota başarıyla hesaplandı ve UI güncellendi");
+    }
+
+    // Haritaya rota gönderme metodu
+    private void sendRouteToMap(List<Object[]> rotaKoordinatlari, List<String> rotaDuraklari) {
+        System.out.println("=== HARITA DEBUG ===");
+        System.out.println("Toplam koordinat sayısı: " + rotaKoordinatlari.size());
+        System.out.println("Ana durak sayısı: " + rotaDuraklari.size());
+        System.out.println("Ana duraklar: " + rotaDuraklari);
+
+        // Koordinat kontrolü
+        if (rotaKoordinatlari.isEmpty()) {
+            System.out.println("HATA: Koordinat listesi boş!");
+            return;
+        }
+
+        if (rotaDuraklari.isEmpty()) {
+            System.out.println("HATA: Ana durak listesi boş!");
+            return;
+        }
+
+        // JavaScript'e gönderilecek ana durakları yazdır
+        System.out.println("Haritada gösterilecek duraklar: " + rotaDuraklari);
+
+        // Koordinatları JavaScript array'ine dönüştür
         StringBuilder routePointsJs = new StringBuilder("[");
         for (Object[] koordinat : rotaKoordinatlari) {
             routePointsJs.append("[").append(koordinat[0]).append(",").append(koordinat[1]).append("],");
         }
-        if (routePointsJs.charAt(routePointsJs.length() - 1) == ',') {
+        if (routePointsJs.length() > 1 && routePointsJs.charAt(routePointsJs.length() - 1) == ',') {
             routePointsJs.deleteCharAt(routePointsJs.length() - 1);
         }
         routePointsJs.append("]");
-        webEngine.executeScript("showRoute(" + routePointsJs + ")");
 
-        // ✅ YENİ: Rota durakları gönder
+        // Durak isimlerini JavaScript array'ine dönüştür
         StringBuilder stationNamesJs = new StringBuilder("[");
         for (String durakIsmi : rotaDuraklari) {
             stationNamesJs.append("'").append(durakIsmi).append("',");
         }
-        if (stationNamesJs.charAt(stationNamesJs.length() - 1) == ',') {
+        if (stationNamesJs.length() > 1 && stationNamesJs.charAt(stationNamesJs.length() - 1) == ',') {
             stationNamesJs.deleteCharAt(stationNamesJs.length() - 1);
         }
         stationNamesJs.append("]");
+
+        System.out.println("JavaScript çağrısı yapılıyor...");
+
+        // JavaScript fonksiyonlarını çağır
+        webEngine.executeScript("showRoute(" + routePointsJs + ")");
         webEngine.executeScript("showRouteStations(" + stationNamesJs + ")");
 
-        // Rota butonunu güncelle
-        updateRotaButton();
-
-        // Tüm hatları göstermeye geç
-        webEngine.executeScript("showOnlyLine('ALL')");
-        selectedLine = "ALL";
-        hatDuraklariListView.setItems(FXCollections.observableArrayList());
+        System.out.println("JavaScript çağrısı tamamlandı");
+        System.out.println("=== DEBUG BİTTİ ===");
     }
 
     // YENİ: Rota bilgilerinden durak isimlerini çıkar
@@ -410,19 +711,32 @@ public class MapController implements Initializable {
         List<String> durakIsimleri = new ArrayList<>();
 
         for (String satir : rotaBilgileri) {
-            // "  2. Kadıköy (Aktarma Noktası) [40.990530, 29.022147]" formatından durak ismini çıkar
-            if (satir.trim().matches("\\s*\\d+\\..*")) {  // Durak satırlarını filtrele
-                // Sayı ve nokta kısmını atla
+            // Çoklu durak rotası için özel durum
+            if (satir.contains("Ziyaret sırası:")) {
+                // "Ziyaret sırası: Kartal → Göztepe → Sirkeci" formatından durakları çıkar
+                String[] parcalar = satir.split(":");
+                if (parcalar.length > 1) {
+                    String durakKismi = parcalar[1].trim();
+                    String[] duraklar = durakKismi.split(" → ");
+                    for (String durak : duraklar) {
+                        String temizDurak = durak.trim();
+                        if (!temizDurak.isEmpty() && !durakIsimleri.contains(temizDurak)) {
+                            durakIsimleri.add(temizDurak);
+                        }
+                    }
+                    // Çoklu durak rotasında ana durakları bulduk, return et
+                    return durakIsimleri;
+                }
+            }
+
+            // Normal tek segment rota için (eski mantık)
+            if (satir.trim().matches("\\s*\\d+\\..*")) {
                 String temp = satir.replaceFirst("\\s*\\d+\\.\\s*", "");
-
-                // "(Aktarma Noktası)" kısmını temizle
                 temp = temp.replaceAll("\\s*\\(.*?\\)", "");
-
-                // "[koordinat]" kısmını temizle
                 temp = temp.replaceAll("\\s*\\[.*?\\]", "");
 
                 String durakIsmi = temp.trim();
-                if (!durakIsmi.isEmpty()) {
+                if (!durakIsmi.isEmpty() && !durakIsimleri.contains(durakIsmi)) {
                     durakIsimleri.add(durakIsmi);
                 }
             }
@@ -505,15 +819,26 @@ public class MapController implements Initializable {
         baslangicListView.getItems().clear();
         bitisListView.getItems().clear();
 
+        // Ara durakları temizle
+        araDuraklarContainer.getChildren().clear();
+        araDuraklar.clear();
+        araDurakSayaci = 1;
+
+        // Sayı label'ını güncelle
+        araDurakSayisiniGuncelle();
+
         // Rota durumunu sıfırla
         isRouteVisible = false;
         webEngine.executeScript("clearRoute()");
-        webEngine.executeScript("clearRouteStations()");  // ✅ Rota durakları temizle
+        webEngine.executeScript("clearRouteStations()");
         webEngine.executeScript("showOnlyLine('ALL')");
 
         // Buton metnini sıfırla
         rotaBulButton.setText("🔍 Rota Bul");
-        rotaBulButton.setStyle("-fx-background-color: linear-gradient(to bottom, #a8d5f2, #87ceeb); -fx-text-fill: #2c3e50; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #7fb3d3; -fx-border-width: 1px;");
+        rotaBulButton.setStyle("-fx-background-color: linear-gradient(to bottom, #a8d5f2, #87ceeb); " +
+                "-fx-text-fill: #2c3e50; -fx-font-size: 14px; -fx-font-weight: bold; " +
+                "-fx-background-radius: 15px; -fx-border-radius: 15px; " +
+                "-fx-border-color: #7fb3d3; -fx-border-width: 1px;");
 
         selectedLine = "ALL";
         hatDuraklariListView.setItems(FXCollections.observableArrayList());

@@ -4,7 +4,7 @@ module com.example.toplutasimaprojesi {
     requires javafx.web;
     requires org.json;
     requires jdk.jsobject;
-    requires java.desktop;
+    requires javafx.graphics;
 
     opens com.example.toplutasimaprojesi to javafx.fxml;
     exports com.example.toplutasimaprojesi;

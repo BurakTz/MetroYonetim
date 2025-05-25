@@ -347,4 +347,160 @@ public class MetroAgi {
             }
         }
     }
+
+    // MetroAgi.java'ya eklenecek tam cokluDurakRotasi() metodu
+
+    public void cokluDurakRotasi(List<String> durakSirasi,
+                                 List<String> rotaBilgileri,
+                                 List<Object[]> rotaKoordinatlari) {
+
+        System.out.println("=== METROAGI DEBUG ===");
+        System.out.println("Durak sırası: " + durakSirasi);
+
+        if (durakSirasi.size() < 2) {
+            rotaBilgileri.add("En az 2 durak gerekli!");
+            return;
+        }
+
+        rotaBilgileri.add("🚇 Çoklu Durak Rotası");
+        rotaBilgileri.add("═══════════════════════");
+        rotaBilgileri.add("Ziyaret sırası: " + String.join(" → ", durakSirasi));
+        rotaBilgileri.add("");
+
+        double toplamSure = 0;
+        int toplamSegmentSayisi = durakSirasi.size() - 1;
+
+        // Her segment için rota hesapla
+        for (int i = 0; i < durakSirasi.size() - 1; i++) {
+            String baslangic = durakSirasi.get(i);
+            String bitis = durakSirasi.get(i + 1);
+
+            System.out.println("Segment " + (i+1) + ": " + baslangic + " -> " + bitis);
+
+            rotaBilgileri.add("🚇 Segment " + (i + 1) + "/" + toplamSegmentSayisi +
+                    ": " + baslangic + " → " + bitis);
+            rotaBilgileri.add("─────────────────────────────");
+
+            List<String> segmentBilgileri = new ArrayList<>();
+            List<Object[]> segmentKoordinatlari = new ArrayList<>();
+
+            // Mevcut enKisaYoluBul metodunu kullan
+            enKisaYoluBul(baslangic, bitis, segmentBilgileri, segmentKoordinatlari);
+
+            System.out.println("Segment " + (i+1) + " koordinat sayısı: " + segmentKoordinatlari.size());
+
+            // İlk birkaç koordinatı yazdır
+            for (int k = 0; k < Math.min(3, segmentKoordinatlari.size()); k++) {
+                Object[] koord = segmentKoordinatlari.get(k);
+                System.out.println("  Segment " + (i+1) + " koord " + k + ": [" + koord[0] + ", " + koord[1] + "]");
+            }
+
+            // Segment bilgilerini ana listeye ekle
+            if (segmentBilgileri.size() > 1) {
+                for (int j = 1; j < segmentBilgileri.size(); j++) {
+                    String satir = segmentBilgileri.get(j);
+
+                    if (satir.contains("Toplam süre")) {
+                        String[] parcalar = satir.split(":");
+                        if (parcalar.length > 1) {
+                            try {
+                                String sureParcasi = parcalar[1].trim().replace(" dakika.", "");
+                                double segmentSure = Double.parseDouble(sureParcasi);
+                                toplamSure += segmentSure;
+                            } catch (NumberFormatException e) {
+                                // Sayı dönüştürme hatası, devam et
+                            }
+                        }
+                    }
+
+                    rotaBilgileri.add("  " + satir);
+                }
+            } else {
+                rotaBilgileri.add("  Bu segment için rota bulunamadı!");
+            }
+
+            // ÖNEMLİ: Koordinatları ekle - DÜZELTİLMİŞ VERSİYON
+            int startIndex;
+            if (i == 0) {
+                // İlk segment: tüm koordinatları ekle
+                startIndex = 0;
+            } else {
+                // Sonraki segmentler:
+                // Eğer önceki segmentin son koordinatı ile bu segmentin ilk koordinatı aynıysa, ilkini atla
+                // Değilse tüm koordinatları ekle
+                if (!rotaKoordinatlari.isEmpty() && !segmentKoordinatlari.isEmpty()) {
+                    Object[] sonKoordinat = rotaKoordinatlari.get(rotaKoordinatlari.size() - 1);
+                    Object[] ilkKoordinat = segmentKoordinatlari.get(0);
+
+                    // Koordinatları karşılaştır (tolerance ile)
+                    double xFark = Math.abs((Double)sonKoordinat[0] - (Double)ilkKoordinat[0]);
+                    double yFark = Math.abs((Double)sonKoordinat[1] - (Double)ilkKoordinat[1]);
+
+                    if (xFark < 0.001 && yFark < 0.001) {
+                        // Aynı koordinat, ilkini atla
+                        startIndex = 1;
+                        System.out.println("Segment " + (i+1) + ": İlk koordinat atlandı (tekrar)");
+                    } else {
+                        // Farklı koordinat, tümünü ekle
+                        startIndex = 0;
+                        System.out.println("Segment " + (i+1) + ": Tüm koordinatlar eklendi (farklı)");
+                    }
+                } else {
+                    startIndex = 0;
+                }
+            }
+
+            System.out.println("Segment " + (i+1) + " için startIndex: " + startIndex +
+                    ", koordinat sayısı: " + segmentKoordinatlari.size());
+
+            int eskiKoordinatSayisi = rotaKoordinatlari.size();
+
+            for (int j = startIndex; j < segmentKoordinatlari.size(); j++) {
+                rotaKoordinatlari.add(segmentKoordinatlari.get(j));
+            }
+
+            System.out.println("Segment " + (i+1) + " sonrası toplam koordinat: " +
+                    rotaKoordinatlari.size() + " (+" + (rotaKoordinatlari.size() - eskiKoordinatSayisi) + ")");
+
+            if (i < durakSirasi.size() - 2) {
+                rotaBilgileri.add("");
+            }
+        }
+
+        System.out.println("FİNAL TOPLAM KOORDİNAT: " + rotaKoordinatlari.size());
+
+        // İlk ve son 3 koordinatı yazdır
+        System.out.println("İlk 3 koordinat:");
+        for (int i = 0; i < Math.min(3, rotaKoordinatlari.size()); i++) {
+            Object[] koord = rotaKoordinatlari.get(i);
+            System.out.println("  " + i + ": [" + koord[0] + ", " + koord[1] + "]");
+        }
+
+        System.out.println("Son 3 koordinat:");
+        for (int i = Math.max(0, rotaKoordinatlari.size() - 3); i < rotaKoordinatlari.size(); i++) {
+            Object[] koord = rotaKoordinatlari.get(i);
+            System.out.println("  " + i + ": [" + koord[0] + ", " + koord[1] + "]");
+        }
+
+        // Genel özet
+        rotaBilgileri.add("");
+        rotaBilgileri.add("📊 GENEL ÖZET");
+        rotaBilgileri.add("═══════════════");
+        rotaBilgileri.add("🎯 Ziyaret edilecek ana duraklar: " + durakSirasi.size());
+        rotaBilgileri.add("🚇 Toplam segment sayısı: " + toplamSegmentSayisi);
+        rotaBilgileri.add("🚉 Toplam durak geçişi: " + (rotaKoordinatlari.size() - 1));
+        rotaBilgileri.add("⏱️ Tahmini toplam süre: " + String.format("%.0f", toplamSure) + " dakika");
+
+        // Durak listesi özeti
+        rotaBilgileri.add("");
+        rotaBilgileri.add("📍 Ziyaret Sırası:");
+        for (int i = 0; i < durakSirasi.size(); i++) {
+            String durakIsmi = durakSirasi.get(i);
+            String emoji = (i == 0) ? "🚇" : (i == durakSirasi.size() - 1) ? "🏁" : "📍";
+            String tip = (i == 0) ? "Başlangıç" : (i == durakSirasi.size() - 1) ? "Bitiş" : "Ara Durak " + i;
+            rotaBilgileri.add("  " + emoji + " " + tip + ": " + durakIsmi);
+        }
+
+        System.out.println("=== METROAGI DEBUG BİTTİ ===");
+    }
 }
