@@ -66,7 +66,8 @@ public class MetroAgi {
     }
 
     // Yeni hat ekleme
-    public Hat hatEkle(String isim) {
+    // Hat ekleme - SADECE RENK İLE
+    public Hat hatEkle(String isim, String renk) {
         if (hatSayisi >= maksHatSayisi) {
             System.out.println("Maksimum hat sayısına ulaşıldı!");
             return null;
@@ -79,8 +80,8 @@ public class MetroAgi {
             }
         }
 
-        // Yeni hat ekle
-        Hat yeniHat = new Hat(isim);
+        // Yeni hat ekle - RENK İLE
+        Hat yeniHat = new Hat(isim, renk);
         hatlar[hatSayisi] = yeniHat;
         hatSayisi++;
         return yeniHat;
@@ -122,13 +123,14 @@ public class MetroAgi {
     }
 
     // Hat oluşturma ve duraklarını sırayla ekleme
-    public void hatOlustur(String hatIsmi, String[] durakIsimleri, double[][] koordinatlar,int [] gecenSureler) {
+    // Hat oluşturma ve duraklarını sırayla ekleme - RENK İLE
+    public void hatOlustur(String hatIsmi, String renk, String[] durakIsimleri, double[][] koordinatlar, int[] gecenSureler) {
         if (durakIsimleri.length != koordinatlar.length && koordinatlar.length != gecenSureler.length) {
-            System.out.println("Durak isimleri , koordinat sayıları ve gecen sureler eşit olmalıdır!");
+            System.out.println("Durak isimleri, koordinat sayıları ve gecen sureler eşit olmalıdır!");
             return;
         }
 
-        Hat hat = hatEkle(hatIsmi);
+        Hat hat = hatEkle(hatIsmi, renk); // 🎨 RENK PARAMETRESİ EKLENDİ
 
         if (hat == null) {
             return;
@@ -136,15 +138,14 @@ public class MetroAgi {
 
         // Önceki durak referansı
         Durak oncekiDurak = null;
-        int y=0;
+        int y = 0;
 
         // Hat üzerindeki her durağı ekle
         for (int i = 0; i < durakIsimleri.length; i++) {
             String durakIsmi = durakIsimleri[i];
             double xKoordinat = koordinatlar[i][0];
             double yKoordinat = koordinatlar[i][1];
-            int  gecenSure  = gecenSureler[y];
-
+            int gecenSure = gecenSureler[y];
 
             Durak durak = durakBul(durakIsmi);
 
@@ -161,7 +162,7 @@ public class MetroAgi {
             // Önceki durakla bağlantı oluştur
             if (oncekiDurak != null) {
                 y++;
-                baglantiEkle(oncekiDurak.getIsim(), durak.getIsim(), hatIsmi,gecenSure);
+                baglantiEkle(oncekiDurak.getIsim(), durak.getIsim(), hatIsmi, gecenSure);
             }
 
             oncekiDurak = durak;

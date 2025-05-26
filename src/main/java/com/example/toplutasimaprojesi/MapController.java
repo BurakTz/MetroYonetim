@@ -17,7 +17,6 @@ import netscape.javascript.JSObject;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -108,7 +107,7 @@ public class MapController implements Initializable {
 
     private WebEngine webEngine;
     private MetroAgi metroAgi;
-    private HashMap<String, String> hatRenkleri;
+
 
     // YENİ: Hash table ve utility fonksiyonları
     private PrimeHashTable primeHashTable;
@@ -138,7 +137,6 @@ public class MapController implements Initializable {
 
             // Metro ağını oluştur
             metroAgi = MetroAgi.getInstance();
-            hatRenkleriOlustur();
             metroHatlariniOlustur();
             System.out.println("Metro ağı oluşturuldu");
 
@@ -203,10 +201,13 @@ public class MapController implements Initializable {
     // Haritayı durak ve hatlarla doldur
     private void haritayiDoldur() {
         // Tüm hatları ekle
+        // Tüm hatları ekle - 🎨 ARTIK HER HAT KENDİ RENGİNİ BİLİYOR!
         for (int i = 0; i < metroAgi.getHatSayisi(); i++) {
             Hat hat = metroAgi.getHatIndex(i);
             String hatIsmi = hat.getIsim();
-            String renk = hatRenkleri.getOrDefault(hatIsmi, "#3388ff");
+            String renk = hat.getRenk(); // 🎨 HAT'TAN RENK AL
+
+            System.out.println("Hat ekleniyor: " + hatIsmi + " - Renk: " + renk);
             webEngine.executeScript("addLine('" + hatIsmi + "', '" + renk + "')");
         }
 
@@ -240,21 +241,7 @@ public class MapController implements Initializable {
         }
     }
 
-    // Hat renkleri için HashMap oluştur
-    private void hatRenkleriOlustur() {
-        hatRenkleri = new HashMap<>();
-        hatRenkleri.put("M1", "#E32017");
-        hatRenkleri.put("M2", "#00853F");
-        hatRenkleri.put("M3", "#0098D4");
-        hatRenkleri.put("M4", "#9B0058");
-        hatRenkleri.put("M5", "#954F9E");
-        hatRenkleri.put("M6", "#F0D77A");
-        hatRenkleri.put("M7", "#EE7C0E");
-        hatRenkleri.put("M8", "#876129");
-        hatRenkleri.put("M9", "#DA9100");
-        hatRenkleri.put("M10", "#00AFAD");
-        hatRenkleri.put("Marmaray", "#0075C9");
-    }
+
     private String[] marmarayDuraklari;
     private int[] marmaraykeys;
     private String[] m4Duraklari;
@@ -330,7 +317,7 @@ public class MapController implements Initializable {
             };
 
 
-            metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari, marmaraykeys);
+            metroAgi.hatOlustur("Marmaray", "#0075C9", marmarayDuraklari, marmarayKoordinatlari, marmaraykeys);
 
             m4Duraklari =new String[] {
                     "Sabiha Gökçen", "Kurtköy", "Yayalar", "Fevzi Çakmak",
@@ -371,7 +358,7 @@ public class MapController implements Initializable {
                      22, 25, 28, 31, 33, 35, 37, 40, 42, 45, 47, 49, 51, 53, 56, 59, 61, 63, 65, 67, 69, 71, 75
             };
 
-            metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari, m4keys);
+            metroAgi.hatOlustur("M4", "#9B0058", m4Duraklari, m4Koordinatlari, m4keys);
 
             m8Duraklari =new String[] {
                     "Bostancı",
@@ -409,7 +396,7 @@ public class MapController implements Initializable {
                     53, 55, 56, 59, 61, 64, 67, 69, 71, 73, 75, 77
             };
 
-            metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari, m8keys);
+            metroAgi.hatOlustur("M8", "#876129", m8Duraklari, m8Koordinatlari, m8keys);
 
             m5Duraklari =new String[] {
                     "Üsküdar",
@@ -463,7 +450,7 @@ public class MapController implements Initializable {
                     71, 73, 75, 72, 70, 73, 76, 74, 72, 69, 67, 69, 71, 73, 77, 79, 82, 85, 87, 89, 91
             };
 
-            metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari, m5keys);
+            metroAgi.hatOlustur("M5", "#954F9E", m5Duraklari, m5Koordinatlari, m5keys);
 
         }
     }
