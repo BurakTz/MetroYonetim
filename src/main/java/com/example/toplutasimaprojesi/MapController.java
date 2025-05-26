@@ -79,6 +79,19 @@ public class MapController implements Initializable {
     @FXML
     private Label araDurakSayisiLabel;
 
+    @FXML
+    private Label rotaUzunlukLabel;
+
+    @FXML
+    private Label rotaSureLabel;
+
+    @FXML
+    private Label rotaHatlarLabel;
+
+
+
+
+
     // Aktif olarak seçilen hat
     private String selectedLine = "ALL";
 
@@ -149,6 +162,10 @@ public class MapController implements Initializable {
 
             // Ara durak sayısı label'ını başlat
             araDurakSayisiniGuncelle();
+
+            if (rotaUzunlukLabel != null) rotaUzunlukLabel.setText("🚇 Toplam Durak: -");
+            if (rotaSureLabel != null) rotaSureLabel.setText("⏱️ Tahmini Süre: -");
+            if (rotaHatlarLabel != null) rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: -");
 
             System.out.println("Initialize tamamlandı!");
 
@@ -744,6 +761,8 @@ public class MapController implements Initializable {
         // Sonuçları göster
         rotaListView.setItems(FXCollections.observableArrayList(rotaBilgileri));
 
+        updateRotaOzeti(rotaBilgileri, rotaKoordinatlari);
+
         // Rota durak isimlerini çıkar
         List<String> rotaDuraklari = extractRouteStationNames(rotaBilgileri);
 
@@ -850,26 +869,56 @@ public class MapController implements Initializable {
     }
 
     private void toggleRouteVisibility() {
+        System.out.println("=== TOGGLE BAŞLADI ===");
+        System.out.println("Önceki isRouteVisible: " + isRouteVisible);
+
         isRouteVisible = !isRouteVisible;
+
+        System.out.println("Yeni isRouteVisible: " + isRouteVisible);
+
         webEngine.executeScript("toggleRoute(" + isRouteVisible + ")");
 
         if (isRouteVisible) {
-            // Rota ve durakları göster
+            System.out.println("DALLANMA: ROTA GÖSTERİLİYOR");
             webEngine.executeScript("hideAllLines()");
-            // Rota durakları zaten mevcut, sadece görünür yap
+
+            // ✅ BU KISMI EKLE - Rota durakları tekrar göster
+            List<String> rotaDuraklari = extractRouteStationNames(rotaListView.getItems());
+            if (!rotaDuraklari.isEmpty()) {
+                System.out.println("DEBUG: Rota durakları tekrar gösteriliyor: " + rotaDuraklari);
+                sendRouteStationsToMap(rotaDuraklari);
+            } else {
+                System.out.println("HATA: Rota durakları bulunamadı!");
+            }
+
             selectedLine = "ROUTE_MODE";
             hatDuraklariListView.setItems(FXCollections.observableArrayList());
         } else {
-            // Rota ve durakları gizle
-            webEngine.executeScript("clearRouteStations()");  // ✅ Rota durakları temizle
+            System.out.println("DALLANMA: ROTA GİZLENİYOR");
+            webEngine.executeScript("clearRouteStations()");
             webEngine.executeScript("showOnlyLine('ALL')");
             selectedLine = "ALL";
             hatDuraklariListView.setItems(FXCollections.observableArrayList());
         }
 
         updateRotaButton();
+        System.out.println("=== TOGGLE BİTTİ ===");
     }
 
+    private void sendRouteStationsToMap(List<String> rotaDuraklari) {
+        // Durak isimlerini JavaScript array'ine dönüştür
+        StringBuilder stationNamesJs = new StringBuilder("[");
+        for (String durakIsmi : rotaDuraklari) {
+            stationNamesJs.append("'").append(durakIsmi).append("',");
+        }
+        if (stationNamesJs.length() > 1 && stationNamesJs.charAt(stationNamesJs.length() - 1) == ',') {
+            stationNamesJs.deleteCharAt(stationNamesJs.length() - 1);
+        }
+        stationNamesJs.append("]");
+
+        System.out.println("DEBUG: Duraklar JavaScript'e tekrar gönderiliyor: " + stationNamesJs);
+        webEngine.executeScript("showRouteStations(" + stationNamesJs + ")");
+    }
     // YENİ: Rota buton durumunu güncelle
     private void updateRotaButton() {
         if (isRouteVisible) {
@@ -923,6 +972,10 @@ public class MapController implements Initializable {
         baslangicListView.getItems().clear();
         bitisListView.getItems().clear();
 
+        rotaUzunlukLabel.setText("🚇 Toplam Durak: -");
+        rotaSureLabel.setText("⏱️ Tahmini Süre: -");
+        rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: -");
+
         // Ara durakları temizle
         araDuraklarContainer.getChildren().clear();
         araDuraklar.clear();
@@ -946,6 +999,102 @@ public class MapController implements Initializable {
 
         selectedLine = "ALL";
         hatDuraklariListView.setItems(FXCollections.observableArrayList());
+    }
+
+    // ✅ YENİ METOT - MapController sınıfının içine ekle
+    private void updateRotaOzeti(List<String> rotaBilgileri, List<Object[]> rotaKoordinatlari) {
+        try {
+            int toplamDurak = rotaKoordinatlari.size();
+            double tahminiSure = 0.0;
+            Set<String> kullanilanHatlar = new HashSet<>();
+
+            // Rota bilgilerinden verileri çıkar
+            for (String satir : rotaBilgileri) {
+
+                // Toplam süre bilgisini bul
+                if (satir.contains("Toplam süre") || satir.contains("Tahmini toplam süre")) {
+                    try {
+                        String[] parcalar = satir.split(":");
+                        if (parcalar.length > 1) {
+                            String sureParcasi = parcalar[1].trim();
+                            String sayiStr = sureParcasi.replaceAll("[^0-9.]", "");
+                            if (!sayiStr.isEmpty()) {
+                                tahminiSure += Double.parseDouble(sayiStr);
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Süre parse hatası: " + satir);
+                    }
+                }
+
+                // Hat bilgilerini bul
+                if (satir.contains("hattına geç") || satir.contains("hattı")) {
+                    if (satir.contains("[") && satir.contains("hattına geç")) {
+                        String hatIsmi = satir.substring(satir.indexOf("[") + 1, satir.indexOf(" hattına geç"));
+                        kullanilanHatlar.add(hatIsmi.trim());
+                    }
+                    else if (satir.contains("(") && satir.contains(" hattı)")) {
+                        String hatIsmi = satir.substring(satir.indexOf("(") + 1, satir.indexOf(" hattı)"));
+                        kullanilanHatlar.add(hatIsmi.trim());
+                    }
+                }
+            }
+
+            // Eğer süre bulunamadıysa tahmini hesapla
+            if (tahminiSure == 0.0 && toplamDurak > 1) {
+                tahminiSure = (toplamDurak - 1) * 2.5;
+            }
+
+            // Eğer hat bulunamadıysa durak bazlı kontrol yap
+            if (kullanilanHatlar.isEmpty()) {
+                List<String> rotaDuraklari = extractRouteStationNames(rotaBilgileri);
+                for (String durakIsmi : rotaDuraklari) {
+                    Durak durak = metroAgi.durakBul(durakIsmi);
+                    if (durak != null) {
+                        List<String> durakHatlari = durak.getHatlar();
+                        kullanilanHatlar.addAll(durakHatlari);
+                    }
+                }
+            }
+
+            // ✅ FINAL değişkenler oluştur lambda için
+            final int finalToplamDurak = toplamDurak;
+            final double finalTahminiSure = tahminiSure;
+            final Set<String> finalKullanilanHatlar = new HashSet<>(kullanilanHatlar);
+
+            // Label'ları güncelle
+            Platform.runLater(() -> {
+                if (finalToplamDurak > 1) {
+                    rotaUzunlukLabel.setText("🚇 Toplam Durak: " + (finalToplamDurak - 1) + " geçiş");
+                } else {
+                    rotaUzunlukLabel.setText("🚇 Toplam Durak: -");
+                }
+
+                if (finalTahminiSure > 0) {
+                    rotaSureLabel.setText("⏱️ Tahmini Süre: " + String.format("%.0f", finalTahminiSure) + " dakika");
+                } else {
+                    rotaSureLabel.setText("⏱️ Tahmini Süre: -");
+                }
+
+                if (!finalKullanilanHatlar.isEmpty()) {
+                    String hatlarStr = String.join(", ", finalKullanilanHatlar);
+                    if (hatlarStr.length() > 25) {
+                        hatlarStr = hatlarStr.substring(0, 22) + "...";
+                    }
+                    rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: " + hatlarStr);
+                } else {
+                    rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: -");
+                }
+            });
+
+        } catch (Exception e) {
+            System.err.println("HATA: Özet güncelleme sırasında hata: " + e.getMessage());
+            Platform.runLater(() -> {
+                rotaUzunlukLabel.setText("🚇 Toplam Durak: Hesaplanamadı");
+                rotaSureLabel.setText("⏱️ Tahmini Süre: Hesaplanamadı");
+                rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: Hesaplanamadı");
+            });
+        }
     }
 
     // YENİ: Hash table hazırlama
