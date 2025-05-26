@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.time.LocalTime;
 
 public class MapController implements Initializable {
 
@@ -88,7 +89,14 @@ public class MapController implements Initializable {
     @FXML
     private Label rotaHatlarLabel;
 
+    @FXML
+    private TextField yolcuSaatText;
 
+    @FXML
+    private TextField yolcuDakikaText;
+
+    @FXML
+    private CheckBox simdiCheckBox;
 
 
 
@@ -159,6 +167,8 @@ public class MapController implements Initializable {
             System.out.println("TextField listener'ları kuruluyor...");
             textFieldListenersKur();
             System.out.println("TextField listener'ları kuruldu");
+
+            beklemeSistemi = new MetroBeklemeSistemi(this);
 
             // Ara durak sayısı label'ını başlat
             araDurakSayisiniGuncelle();
@@ -245,11 +255,19 @@ public class MapController implements Initializable {
         hatRenkleri.put("M10", "#00AFAD");
         hatRenkleri.put("Marmaray", "#0075C9");
     }
+    private String[] marmarayDuraklari;
+    private int[] marmaraykeys;
+    private String[] m4Duraklari;
+    private int[] m4keys;
+    private String[] m8Duraklari;
+    private int[] m8keys;
+    private String[] m5Duraklari;
+    private int[] m5keys;
 
     // Metro hatlarını oluştur
     private void metroHatlariniOlustur() {
         {
-            String[] marmarayDuraklari = {
+            marmarayDuraklari =new String[] {
                     "Gebze", "Darıca", "Osmangazi", "GTÜ – Fatih", "Cayırova", "Tuzla",
                     "İçmeler", "Aydıntepe", "Güzelyalı", "Tersane", "Kaynarca", "Pendik",
                     "Yunus", "Kartal", "Başak", "Atalar", "Cevizli", "Maltepe",
@@ -306,14 +324,15 @@ public class MapController implements Initializable {
                     {41.018633, 28.767911}
             };
 
-            int[] marmaraykeys = {
+            marmaraykeys =new int[] {
                     5, 8, 10, 12, 14, 17, 20, 22, 25, 27, 30, 33, 35, 37, 39, 42, 46, 48, 51, 53,
                     55, 57, 60, 62, 64, 67, 69, 71, 73, 76, 79, 82, 85, 88, 90, 92, 94, 96, 99, 102, 104, 107,109
             };
 
+
             metroAgi.hatOlustur("Marmaray", marmarayDuraklari, marmarayKoordinatlari, marmaraykeys);
 
-            String[] m4Duraklari = {
+            m4Duraklari =new String[] {
                     "Sabiha Gökçen", "Kurtköy", "Yayalar", "Fevzi Çakmak",
                     "Tavşantepe", "PendikM4", "Yakacık", "KartalM4", "Soğanlık",
                     "Hastane-Adliye", "Esenkent", "Gülsuyu", "Huzurevi",
@@ -348,13 +367,13 @@ public class MapController implements Initializable {
                     {40.990530, 29.022147}   // Kadıköy
             };
 
-            int[] m4keys = {
+            m4keys =new int[] {
                      22, 25, 28, 31, 33, 35, 37, 40, 42, 45, 47, 49, 51, 53, 56, 59, 61, 63, 65, 67, 69, 71, 75
             };
 
             metroAgi.hatOlustur("M4", m4Duraklari, m4Koordinatlari, m4keys);
 
-            String[] m8Duraklari = {
+            m8Duraklari =new String[] {
                     "Bostancı",
                     "Emin Ali Paşa",
                     "Ayşekadın",
@@ -386,13 +405,13 @@ public class MapController implements Initializable {
                     {41.031239, 29.152671}   // Parseller
             };
 
-            int[] m8keys = {
+            m8keys =new int[] {
                     53, 55, 56, 59, 61, 64, 67, 69, 71, 73, 75, 77
             };
 
             metroAgi.hatOlustur("M8", m8Duraklari, m8Koordinatlari, m8keys);
 
-            String[] m5Duraklari = {
+            m5Duraklari =new String[] {
                     "Üsküdar",
                     "Fıstıkağacı",
                     "Bağlarbaşı",
@@ -440,11 +459,12 @@ public class MapController implements Initializable {
                     {40.983305, 29.230839}   // Samandıra Merkez
             };
 
-            int[] m5keys = {
+            m5keys =new int[] {
                     71, 73, 75, 72, 70, 73, 76, 74, 72, 69, 67, 69, 71, 73, 77, 79, 82, 85, 87, 89, 91
             };
 
             metroAgi.hatOlustur("M5", m5Duraklari, m5Koordinatlari, m5keys);
+
         }
     }
 
@@ -503,6 +523,122 @@ public class MapController implements Initializable {
             }
         }
     }
+    private MetroBeklemeSistemi beklemeSistemi;
+
+    private void hesaplaBeklemeSuresiAction() {
+        if (!simdiCheckBox.isSelected()) {
+            // Checkbox işaretli DEĞİLSE yapılacaklar buraya
+            String saatSt = yolcuSaatText.getText().trim();
+            String dakikaSt = yolcuDakikaText.getText().trim();
+
+            // Seçilen hat
+            String secilenHat = selectedLine;
+
+            // ListView'den seçilen durak
+            String secilenDurakBilgi = hatDuraklariListView.getSelectionModel().getSelectedItem();
+            if (secilenDurakBilgi == null) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setContentText("Lütfen bir durak seçiniz.");
+                alert.showAndWait();
+                return;
+            }
+
+            // "1. Kadıköy (Aktarma Noktası)" -> "Kadıköy"
+            String secilenDurak = secilenDurakBilgi.replaceAll("^\\d+\\.\\s*", "")
+                    .replaceAll("\\s*\\(.*\\)$", "");
+
+            if (secilenHat == null || secilenHat.equals("ALL")) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setContentText("Lütfen önce bir hat seçiniz.");
+                alert.showAndWait();
+                return;
+            }
+
+            beklemeSistemi.hesaplaBeklemeSuresi(secilenHat, secilenDurak, saatSt, dakikaSt,simdiCheckBox);
+        }
+        else{
+            LocalTime simdi = LocalTime.now();
+            String saatStr = Integer.toString(simdi.getHour());
+            String dakikaStr = Integer.toString(simdi.getMinute());
+
+            // Seçilen hat
+            String secilenHat = selectedLine;
+
+            // ListView'den seçilen durak
+            String secilenDurakBilgi = hatDuraklariListView.getSelectionModel().getSelectedItem();
+            if (secilenDurakBilgi == null) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setContentText("Lütfen bir durak seçiniz.");
+                alert.showAndWait();
+                return;
+            }
+
+            // "1. Kadıköy (Aktarma Noktası)" -> "Kadıköy"
+            String secilenDurak = secilenDurakBilgi.replaceAll("^\\d+\\.\\s*", "")
+                    .replaceAll("\\s*\\(.*\\)$", "");
+
+            if (secilenHat == null || secilenHat.equals("ALL")) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setContentText("Lütfen önce bir hat seçiniz.");
+                alert.showAndWait();
+                return;
+            }
+
+            beklemeSistemi.hesaplaBeklemeSuresi(secilenHat, secilenDurak, saatStr, dakikaStr,simdiCheckBox);
+
+
+        }
+
+    }
+
+
+
+    public int getDurakKey(String hatIsmi, String durakIsmi) {
+        return switch (hatIsmi) {
+            case "Marmaray" -> getMarmarayDurakKey(durakIsmi);
+            case "M4" -> getM4DurakKey(durakIsmi);
+            case "M5" -> getM5DurakKey(durakIsmi);
+            case "M8" -> getM8DurakKey(durakIsmi);
+            default -> -1;
+        };
+    }
+    public int getMarmarayDurakKey(String durakIsmi) {
+        for (int i = 0; i < marmarayDuraklari.length; i++) {
+            if (marmarayDuraklari[i].equals(durakIsmi)) {
+                return marmaraykeys[i];
+            }
+        }
+        return -1;
+    }
+
+    public int getM4DurakKey(String durakIsmi) {
+        for (int i = 0; i < m4Duraklari.length; i++) {
+            if (m4Duraklari[i].equals(durakIsmi)) {
+                return m4keys[i];
+            }
+        }
+        return -1;
+    }
+
+    public int getM8DurakKey(String durakIsmi) {
+        for (int i = 0; i < m8Duraklari.length; i++) {
+            if (m8Duraklari[i].equals(durakIsmi)) {
+                return m8keys[i];
+            }
+        }
+        return -1;
+    }
+
+    public int getM5DurakKey(String durakIsmi) {
+        for (int i = 0; i < m5Duraklari.length; i++) {
+            if (m5Duraklari[i].equals(durakIsmi)) {
+                return m5keys[i];
+            }
+        }
+        return -1;
+    }
+
+
 
     // Ara durak ekleme butonu action
     @FXML
@@ -668,11 +804,25 @@ public class MapController implements Initializable {
     private void rotaBulButtonAction(ActionEvent event) {
         // Eğer rota mevcut değilse, normal rota bulma işlemi
         Boolean routeExists = (Boolean) webEngine.executeScript("window.currentRoute != null");
-
+        String baslangic=baslangicTextField.getText();
+        String durak = "";
         if (routeExists == null || !routeExists) {
             // Normal rota bulma işlemi
             performRouteSearch();
         } else {
+            if (getMarmarayDurakKey(baslangic) != -1){
+                durak= "Marmaray";
+            }
+            if (getM4DurakKey(baslangic) != -1){
+                durak= "M4";
+            }
+            if (getM5DurakKey(baslangic) != -1){
+                durak= "M5";
+            }
+            if (getM8DurakKey(baslangic) != -1){
+                durak= "M8";
+            }
+            beklemeSistemi.hesaplaBeklemeSuresi(durak,baslangicTextField.getText().trim(),yolcuSaatText.getText().trim(),yolcuDakikaText.getText().trim(),simdiCheckBox);
             // Rota toggle işlemi
             toggleRouteVisibility();
         }
