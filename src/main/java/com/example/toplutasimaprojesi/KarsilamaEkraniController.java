@@ -28,10 +28,13 @@ public class KarsilamaEkraniController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/map.fxml"));
             Parent root = loader.load();
 
-            // Sahne oluşturma
-            Scene scene = new Scene(root);
+            // Ekran boyutunu al
+            javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
 
-            // CSS ekleme - aynı CSS'i burada da ekliyoruz
+            // Sahne oluşturma - ekran boyutu kadar
+            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
+
+            // CSS ekleme
             try {
                 URL cssUrl = getClass().getResource("/styles.css");
                 if (cssUrl != null) {
@@ -46,8 +49,17 @@ public class KarsilamaEkraniController {
             mainStage.setTitle("Toplu Taşıma Rota Planlayıcı");
             mainStage.setScene(scene);
 
+            // Ekranı tamamen doldur ama tam ekran modu olmasın
+            mainStage.setX(screenBounds.getMinX());
+            mainStage.setY(screenBounds.getMinY());
+            mainStage.setWidth(screenBounds.getWidth());
+            mainStage.setHeight(screenBounds.getHeight());
+
+            mainStage.show();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 }
