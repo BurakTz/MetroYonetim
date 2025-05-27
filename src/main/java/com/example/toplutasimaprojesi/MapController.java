@@ -1219,6 +1219,7 @@ public class MapController implements Initializable {
 
         rotametroLabel.setText("🚇 Kullanılacak Metro: -");
         rotametroZaman.setText("⏱️ Tahmini Süreler: -");
+        rotametroZaman1.setText("🏁 Varış Saatleri: -");
 
 
 
@@ -1247,24 +1248,40 @@ public class MapController implements Initializable {
         hatDuraklariListView.setItems(FXCollections.observableArrayList());
     }
 
-    // ✅ YENİ METOT - MapController sınıfının içine ekle
     private void updateRotaOzeti(List<String> rotaBilgileri, List<Object[]> rotaKoordinatlari) {
         try {
             int toplamDurak = rotaKoordinatlari.size();
             double tahminiSure = 0.0;
             Set<String> kullanilanHatlar = new HashSet<>();
 
-            // Rota bilgilerinden verileri çıkar
+            // ===== SÜRE HESAPLAMA - DÜZELTİLMİŞ =====
+            System.out.println(" Süre hesaplama başlıyor...");
+
+            boolean genelOzetBulundu = false;
+
             for (String satir : rotaBilgileri) {
-                // Toplam süre bilgisini bul
-                if (satir.contains("Toplam süre") || satir.contains("Tahmini toplam süre")) {
+                // Genel özete geldiysek artık segment sürelerini ekleme
+                if (satir.contains(" GENEL ÖZET") || satir.contains("GENEL ÖZET")) {
+                    genelOzetBulundu = true;
+                    System.out.println(" Genel özet bölümüne ulaşıldı, segment süreleri artık eklenmiyor");
+                    continue;
+                }
+
+                // Toplam süre bilgisini bul - SADECE SEGMENT SÜRELERİNİ TOPLA
+                if (!genelOzetBulundu && (satir.contains("Toplam süre") && !satir.contains("Tahmini toplam süre"))) {
+                    System.out.println(" SEGMENT SÜRESİ BULUNDU: '" + satir + "'");
+
                     try {
                         String[] parcalar = satir.split(":");
                         if (parcalar.length > 1) {
                             String sureParcasi = parcalar[1].trim();
-                            String sayiStr = sureParcasi.replaceAll("[^0-9.]", "");
+                            String sayiStr = sureParcasi.replaceAll("[^0-9]", ""); // sadece rakamlar
+
                             if (!sayiStr.isEmpty()) {
-                                tahminiSure += Double.parseDouble(sayiStr);
+                                double bulunanSure = Double.parseDouble(sayiStr);
+                                tahminiSure += bulunanSure;
+                                System.out.println(" Eklenen segment süresi: " + bulunanSure);
+                                System.out.println(" Toplam süre şimdi: " + tahminiSure);
                             }
                         }
                     } catch (NumberFormatException e) {
@@ -1272,7 +1289,34 @@ public class MapController implements Initializable {
                     }
                 }
 
-                // Hat bilgilerini bul
+                // Eğer "Tahmini toplam süre" varsa onu kullan (çoklu durak rotası için)
+                if (satir.contains("⏱️ Tahmini toplam süre")) {
+                    System.out.println("TOPLAM SÜRE BULUNDU: '" + satir + "'");
+
+                    try {
+                        String[] parcalar = satir.split(":");
+                        if (parcalar.length > 1) {
+                            String sureParcasi = parcalar[1].trim();
+                            String sayiStr = sureParcasi.replaceAll("[^0-9]", "");
+
+                            if (!sayiStr.isEmpty()) {
+                                // Eğer segment süreleri zaten toplandıysa, bu değeri kontrol et
+                                double genelSure = Double.parseDouble(sayiStr);
+                                if (tahminiSure == 0 || Math.abs(tahminiSure - genelSure) > 5) {
+                                    // Segment süreleri toplanmamışsa veya farklıysa genel süreyi kullan
+                                    tahminiSure = genelSure;
+                                    System.out.println(" Genel süre kullanıldı: " + tahminiSure);
+                                } else {
+                                    System.out.println(" Genel süre segment toplamıyla uyumlu, değiştirme");
+                                }
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Genel süre parse hatası: " + satir);
+                    }
+                }
+
+                // Hat bilgilerini bul (değişmez)
                 if (satir.contains("hattına geç") || satir.contains("hattı")) {
                     if (satir.contains("[") && satir.contains("hattına geç")) {
                         String hatIsmi = satir.substring(satir.indexOf("[") + 1, satir.indexOf(" hattına geç"));
@@ -1285,14 +1329,14 @@ public class MapController implements Initializable {
                 }
             }
 
-            // Eğer süre bulunamadıysa tahmini hesapla
-            if (tahminiSure == 0.0 && toplamDurak > 1) {
-                tahminiSure = (toplamDurak - 1) * 2.5;
-            }
+            // ===== SONUÇ =====
+            System.out.println("🔍 =========================");
+            System.out.println("🔍 FİNAL HESAPLANAN SÜRE: " + tahminiSure + " dakika");
+            System.out.println("🔍 =========================");
 
-            // ✅ GLOBAL SÜREYI HEMEN ATA (Platform.runLater dışında)
+            // GLOBAL SÜREYI GÜNCELLE
             globalRotaSuresi = (int) tahminiSure;
-            System.out.println("🔥 GLOBAL SÜRE ATANDI: " + globalRotaSuresi + " dakika");
+            System.out.println("GLOBAL SÜRE GÜNCELLENDİ: " + globalRotaSuresi + " dakika");
 
             // Eğer hat bulunamadıysa durak bazlı kontrol yap
             if (kullanilanHatlar.isEmpty()) {
@@ -1320,7 +1364,6 @@ public class MapController implements Initializable {
                 }
 
                 if (finalTahminiSure > 0) {
-                    // ❌ globalRotaSuresi = (int) finalTahminiSure; // BU SATIRI SİL
                     rotaSureLabel.setText("⏱️ Tahmini Süre: " + String.format("%.0f", finalTahminiSure) + " dakika");
                 } else {
                     rotaSureLabel.setText("⏱️ Tahmini Süre: -");
@@ -1339,6 +1382,7 @@ public class MapController implements Initializable {
 
         } catch (Exception e) {
             System.err.println("HATA: Özet güncelleme sırasında hata: " + e.getMessage());
+            e.printStackTrace();
             Platform.runLater(() -> {
                 rotaUzunlukLabel.setText("🚇 Toplam Durak: Hesaplanamadı");
                 rotaSureLabel.setText("⏱️ Tahmini Süre: Hesaplanamadı");
@@ -1351,6 +1395,7 @@ public class MapController implements Initializable {
 
     private void metroGelmeZamaniHesapla(List<String> rotaBilgileri) {
         try {
+            System.out.println("🔥 metroGelmeZamaniHesapla BAŞLADI - GLOBAL SÜRE: " + globalRotaSuresi);
             String baslangicDuragi = baslangicTextField.getText().trim();
             if (baslangicDuragi.isEmpty()) {
                 rotametroLabel.setText("🚇 Kullanılacak Metro: -");
@@ -1462,7 +1507,7 @@ public class MapController implements Initializable {
     private void hesaplaVeGosterVarisSaatleri(String seferZamanlari) {
         try {
             int rotaSuresi = globalRotaSuresi; // Global süreyi kullan
-            if (rotaSuresi == 0) rotaSuresi = 25; // Varsayılan
+
 
             String bitisDuragi = bitisTextField.getText().trim();
             StringBuilder varisSaatleri = new StringBuilder();
