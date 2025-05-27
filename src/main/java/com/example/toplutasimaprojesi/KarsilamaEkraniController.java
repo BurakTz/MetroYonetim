@@ -46,7 +46,7 @@ public class KarsilamaEkraniController {
             }
 
             // Sahneyi göster
-            mainStage.setTitle("Toplu Taşıma Rota Planlayıcı");
+            mainStage.setTitle("Rotala");
             mainStage.setScene(scene);
 
             // Ekranı tamamen doldur ama tam ekran modu olmasın

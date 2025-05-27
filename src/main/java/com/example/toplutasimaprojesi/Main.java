@@ -37,9 +37,11 @@ public class Main extends Application {
             } catch (Exception e) {
                 System.out.println("CSS yüklenirken hata: " + e.getMessage());
             }
+            stage.getIcons().add(new javafx.scene.image.Image(getClass().getResourceAsStream("/images/icon.png")));
+
 
             // Sahneyi göster
-            stage.setTitle("Rotala - Metro Ağı");
+            stage.setTitle("Rotala");
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
