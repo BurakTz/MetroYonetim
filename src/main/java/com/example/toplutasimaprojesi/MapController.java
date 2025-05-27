@@ -16,6 +16,7 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
 import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -97,7 +98,35 @@ public class MapController implements Initializable {
     @FXML
     private CheckBox simdiCheckBox;
 
+    @FXML
+    private Label rotametroLabel;
 
+    @FXML
+    private Label rotametroZaman;
+
+    @FXML
+    private ComboBox<String> saatComboBox;
+
+    @FXML
+    private ComboBox<String> dakikaComboBox;
+
+    @FXML
+    private Button btn0730;
+
+    @FXML
+    private Button btn0900;
+
+    @FXML
+    private Button btn1730;
+
+    @FXML
+    private Button btn1900;
+
+    @FXML
+    private Label rotametroZaman1;
+
+
+    private int globalRotaSuresi = 0;
 
     // Aktif olarak seçilen hat
     private String selectedLine = "ALL";
@@ -156,6 +185,12 @@ public class MapController implements Initializable {
             butonlariBaslat();
             System.out.println("Butonlar başlatıldı");
 
+            //ComboBox ve hızlı butonlar
+            saatComboBoxDoldur();
+            dakikaComboBoxDoldur();
+            hizliButonlar();
+            System.out.println("ComboBox'lar ve hızlı butonlar hazırlandı");
+
             // YENİ: Hash table hazırla
             System.out.println("Hash table hazırlanıyor...");
             hashTableHazirla();
@@ -174,6 +209,9 @@ public class MapController implements Initializable {
             if (rotaUzunlukLabel != null) rotaUzunlukLabel.setText("🚇 Toplam Durak: -");
             if (rotaSureLabel != null) rotaSureLabel.setText("⏱️ Tahmini Süre: -");
             if (rotaHatlarLabel != null) rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: -");
+
+            if (rotametroLabel != null) rotametroLabel.setText("🚇 Kullanılacak Metro: -");
+            if (rotametroZaman != null) rotametroZaman.setText("⏱️ Tahmini Süreler: -");
 
             System.out.println("Initialize tamamlandı!");
 
@@ -239,6 +277,54 @@ public class MapController implements Initializable {
             webEngine.executeScript("centerMap(" + ilkDurak.getXKoordinat() +
                     ", " + ilkDurak.getYKoordinat() + ", 12)");
         }
+    }
+
+    private void saatComboBoxDoldur() {
+        ObservableList<String> saatler = FXCollections.observableArrayList();
+        for (int i = 0; i < 24; i++) {
+            saatler.add(String.format("%02d", i));
+        }
+        saatComboBox.setItems(saatler);
+        saatComboBox.setValue("00");
+    }
+
+    private void dakikaComboBoxDoldur() {
+        ObservableList<String> dakikalar = FXCollections.observableArrayList();
+        for (int i = 0; i < 60; i++) {
+            dakikalar.add(String.format("%02d", i));
+        }
+        dakikaComboBox.setItems(dakikalar);
+        dakikaComboBox.setValue("00");
+    }
+
+    private void hizliButonlar() {
+        // 07:30 butonuna basınca
+        btn0730.setOnAction(e -> {
+            saatComboBox.setValue("07");
+            dakikaComboBox.setValue("30");
+            System.out.println("07:30 seçildi!");
+        });
+
+        // 09:00 butonuna basınca
+        btn0900.setOnAction(e -> {
+            saatComboBox.setValue("09");
+            dakikaComboBox.setValue("00");
+            System.out.println("09:00 seçildi!");
+        });
+
+        // 17:30 butonuna basınca
+        btn1730.setOnAction(e -> {
+            saatComboBox.setValue("17");
+            dakikaComboBox.setValue("30");
+            System.out.println("17:30 seçildi!");
+        });
+
+        // 19:00 butonuna basınca
+        btn1900.setOnAction(e -> {
+            saatComboBox.setValue("19");
+            dakikaComboBox.setValue("00");
+            System.out.println("19:00 seçildi!");
+        });
     }
 
 
@@ -789,29 +875,45 @@ public class MapController implements Initializable {
     // GÜNCELLENEN: Rota bul button action
     @FXML
     private void rotaBulButtonAction(ActionEvent event) {
-        // Eğer rota mevcut değilse, normal rota bulma işlemi
-        Boolean routeExists = (Boolean) webEngine.executeScript("window.currentRoute != null");
-        String baslangic=baslangicTextField.getText();
-        String durak = "";
-        if (routeExists == null || !routeExists) {
-            // Normal rota bulma işlemi
+        System.out.println("=== ROTA BUL BUTON BASILDI ===");
+
+        try {
+            // Rota var mı kontrol et
+            Boolean routeExists = (Boolean) webEngine.executeScript("window.currentRoute != null");
+            System.out.println("Mevcut rota var mı: " + routeExists);
+
+            if (routeExists == null || !routeExists) {
+                System.out.println("Yeni rota aranıyor...");
+                performRouteSearch();
+            } else {
+                // Rota varsa bekleme süresi hesapla ve toggle yap
+                String baslangic = baslangicTextField.getText().trim();
+                String durakHat = "";
+
+                if (getMarmarayDurakKey(baslangic) != -1){
+                    durakHat = "Marmaray";
+                } else if (getM4DurakKey(baslangic) != -1){
+                    durakHat = "M4";
+                } else if (getM5DurakKey(baslangic) != -1){
+                    durakHat = "M5";
+                } else if (getM8DurakKey(baslangic) != -1){
+                    durakHat = "M8";
+                }
+
+                if (!durakHat.isEmpty() && beklemeSistemi != null) {
+                    String saat = saatComboBox.getValue();
+                    String dakika = dakikaComboBox.getValue();
+                    beklemeSistemi.hesaplaBeklemeSuresi(durakHat, baslangic, saat, dakika, simdiCheckBox);
+                }
+
+                System.out.println("Rota toggle ediliyor...");
+                toggleRouteVisibility();
+            }
+        } catch (Exception e) {
+            System.err.println("Rota buton hatası: " + e.getMessage());
+            e.printStackTrace();
+            // Hata durumunda direkt rota ara
             performRouteSearch();
-        } else {
-            if (getMarmarayDurakKey(baslangic) != -1){
-                durak= "Marmaray";
-            }
-            if (getM4DurakKey(baslangic) != -1){
-                durak= "M4";
-            }
-            if (getM5DurakKey(baslangic) != -1){
-                durak= "M5";
-            }
-            if (getM8DurakKey(baslangic) != -1){
-                durak= "M8";
-            }
-            beklemeSistemi.hesaplaBeklemeSuresi(durak,baslangicTextField.getText().trim(),yolcuSaatText.getText().trim(),yolcuDakikaText.getText().trim(),simdiCheckBox);
-            // Rota toggle işlemi
-            toggleRouteVisibility();
         }
     }
 
@@ -899,6 +1001,8 @@ public class MapController implements Initializable {
         rotaListView.setItems(FXCollections.observableArrayList(rotaBilgileri));
 
         updateRotaOzeti(rotaBilgileri, rotaKoordinatlari);
+
+        metroGelmeZamaniHesapla(rotaBilgileri);
 
         // Rota durak isimlerini çıkar
         List<String> rotaDuraklari = extractRouteStationNames(rotaBilgileri);
@@ -1113,6 +1217,11 @@ public class MapController implements Initializable {
         rotaSureLabel.setText("⏱️ Tahmini Süre: -");
         rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: -");
 
+        rotametroLabel.setText("🚇 Kullanılacak Metro: -");
+        rotametroZaman.setText("⏱️ Tahmini Süreler: -");
+
+
+
         // Ara durakları temizle
         araDuraklarContainer.getChildren().clear();
         araDuraklar.clear();
@@ -1147,7 +1256,6 @@ public class MapController implements Initializable {
 
             // Rota bilgilerinden verileri çıkar
             for (String satir : rotaBilgileri) {
-
                 // Toplam süre bilgisini bul
                 if (satir.contains("Toplam süre") || satir.contains("Tahmini toplam süre")) {
                     try {
@@ -1182,6 +1290,10 @@ public class MapController implements Initializable {
                 tahminiSure = (toplamDurak - 1) * 2.5;
             }
 
+            // ✅ GLOBAL SÜREYI HEMEN ATA (Platform.runLater dışında)
+            globalRotaSuresi = (int) tahminiSure;
+            System.out.println("🔥 GLOBAL SÜRE ATANDI: " + globalRotaSuresi + " dakika");
+
             // Eğer hat bulunamadıysa durak bazlı kontrol yap
             if (kullanilanHatlar.isEmpty()) {
                 List<String> rotaDuraklari = extractRouteStationNames(rotaBilgileri);
@@ -1194,12 +1306,12 @@ public class MapController implements Initializable {
                 }
             }
 
-            // ✅ FINAL değişkenler oluştur lambda için
+            // Final değişkenler
             final int finalToplamDurak = toplamDurak;
             final double finalTahminiSure = tahminiSure;
             final Set<String> finalKullanilanHatlar = new HashSet<>(kullanilanHatlar);
 
-            // Label'ları güncelle
+            // Platform.runLater sadece UI güncellemesi için
             Platform.runLater(() -> {
                 if (finalToplamDurak > 1) {
                     rotaUzunlukLabel.setText("🚇 Toplam Durak: " + (finalToplamDurak - 1) + " geçiş");
@@ -1208,6 +1320,7 @@ public class MapController implements Initializable {
                 }
 
                 if (finalTahminiSure > 0) {
+                    // ❌ globalRotaSuresi = (int) finalTahminiSure; // BU SATIRI SİL
                     rotaSureLabel.setText("⏱️ Tahmini Süre: " + String.format("%.0f", finalTahminiSure) + " dakika");
                 } else {
                     rotaSureLabel.setText("⏱️ Tahmini Süre: -");
@@ -1231,6 +1344,154 @@ public class MapController implements Initializable {
                 rotaSureLabel.setText("⏱️ Tahmini Süre: Hesaplanamadı");
                 rotaHatlarLabel.setText("🚊 Kullanılan Hatlar: Hesaplanamadı");
             });
+        }
+    }
+
+    // MapController.java'ya eklenecek metot:
+
+    private void metroGelmeZamaniHesapla(List<String> rotaBilgileri) {
+        try {
+            String baslangicDuragi = baslangicTextField.getText().trim();
+            if (baslangicDuragi.isEmpty()) {
+                rotametroLabel.setText("🚇 Kullanılacak Metro: -");
+                rotametroZaman.setText("⏱️ Tahmini Süreler: -");
+                return;
+            }
+
+            // Başlangıç durağının hangi hatlarda olduğunu bul
+            String kullanilanHat = "";
+
+            // Hangi hatta ait olduğunu kontrol et
+            if (getMarmarayDurakKey(baslangicDuragi) != -1) {
+                kullanilanHat = "Marmaray";
+            } else if (getM4DurakKey(baslangicDuragi) != -1) {
+                kullanilanHat = "M4";
+            } else if (getM5DurakKey(baslangicDuragi) != -1) {
+                kullanilanHat = "M5";
+            } else if (getM8DurakKey(baslangicDuragi) != -1) {
+                kullanilanHat = "M8";
+            }
+
+            if (kullanilanHat.isEmpty()) {
+                rotametroLabel.setText("🚇 Kullanılacak Metro: Bilinmiyor");
+                rotametroZaman.setText("⏱️ Tahmini Süreler: -");
+                return;
+            }
+
+            // Hat bilgisini göster - DURAK ADI DA EKLENDİ
+            rotametroLabel.setText("🚇 Kullanılacak Metro: " + kullanilanHat + " (" + baslangicDuragi + " durağı)");
+
+            // 🔄 YENİ MANTIK: CheckBox kontrol et
+            LocalTime hesapZamani;
+            if (simdiCheckBox.isSelected()) {
+                // ✅ ŞİMDİ tikliyse anlık zamanı kullan
+                hesapZamani = LocalTime.now();
+                System.out.println("ŞİMDİ seçili - Anlık zaman kullanılıyor: " + hesapZamani);
+            } else {
+                // ✅ ŞİMDİ tiklı değilse ComboBox'tan seçilen zamanı kullan
+                try {
+                    int secilenSaat = Integer.parseInt(saatComboBox.getValue());
+                    int secilenDakika = Integer.parseInt(dakikaComboBox.getValue());
+                    hesapZamani = LocalTime.of(secilenSaat, secilenDakika);
+                    System.out.println("Seçilen zaman kullanılıyor: " + hesapZamani);
+                } catch (Exception e) {
+                    System.out.println("Saat parse hatası, anlık zaman kullanılıyor");
+                    hesapZamani = LocalTime.now();
+                }
+            }
+
+            // Her hat için farklı sefer aralıkları
+            int seferAraligi = switch (kullanilanHat) {
+                case "Marmaray" -> 6; // 6 dakikada bir
+                case "M4", "M5" -> 4; // 4 dakikada bir
+                case "M8" -> 5; // 5 dakikada bir
+                default -> 5;
+            };
+
+            // Her hat için farklı başlangıç saatleri
+            LocalTime hatBaslangic = switch (kullanilanHat) {
+                case "Marmaray" -> LocalTime.of(6, 0);
+                case "M4" -> LocalTime.of(6, 15);
+                case "M5" -> LocalTime.of(6, 10);
+                case "M8" -> LocalTime.of(6, 30);
+                default -> LocalTime.of(6, 0);
+            };
+
+            // Durak için geçen süreyi hesapla
+            int durakGecenSure = getDurakKey(kullanilanHat, baslangicDuragi);
+            if (durakGecenSure == -1) durakGecenSure = 0;
+
+            // Bu durağa trenin ilk geliş saati
+            LocalTime durakIlkVaris = hatBaslangic.plusMinutes(durakGecenSure);
+
+            // Sonraki 3 trenin zamanlarını hesapla
+            StringBuilder zamanlar = new StringBuilder();
+            for (int i = 0; i < 3; i++) {
+                LocalTime trenZamani = durakIlkVaris;
+
+                // Hesap zamanından sonraki ilk treni bul
+                while (trenZamani.isBefore(hesapZamani)) {
+                    trenZamani = trenZamani.plusMinutes(seferAraligi);
+                }
+
+                // i. treni ekle
+                trenZamani = trenZamani.plusMinutes(i * seferAraligi);
+
+                // Kalan süreyi hesapla
+                long kalanDakika = Duration.between(hesapZamani, trenZamani).toMinutes();
+                if (kalanDakika < 0) kalanDakika += 24 * 60; // Gece yarısı geçerse
+
+                if (i > 0) zamanlar.append(", ");
+                zamanlar.append(trenZamani.toString().substring(0, 5)); // HH:MM formatı
+                zamanlar.append(" (").append(kalanDakika).append("dk)");
+            }
+
+            rotametroZaman.setText("⏱️ Sonraki Seferler: " + zamanlar.toString());
+
+            // YENİ: Varış saatleri hesapla ve göster
+            hesaplaVeGosterVarisSaatleri(zamanlar.toString());
+
+        } catch (Exception e) {
+            System.err.println("Metro gelme zamanı hesaplanırken hata: " + e.getMessage());
+            rotametroLabel.setText("🚇 Kullanılacak Metro: Hata");
+            rotametroZaman.setText("⏱️ Sonraki Seferler: Hesaplanamadı");
+        }
+    }
+
+    // YENİ METOT: Varış saatleri hesapla
+    private void hesaplaVeGosterVarisSaatleri(String seferZamanlari) {
+        try {
+            int rotaSuresi = globalRotaSuresi; // Global süreyi kullan
+            if (rotaSuresi == 0) rotaSuresi = 25; // Varsayılan
+
+            String bitisDuragi = bitisTextField.getText().trim();
+            StringBuilder varisSaatleri = new StringBuilder();
+            String[] seferler = seferZamanlari.split(", ");
+
+            for (int i = 0; i < Math.min(3, seferler.length); i++) {
+                String sefer = seferler[i];
+                if (sefer.contains("(")) {
+                    String seferSaati = sefer.substring(0, sefer.indexOf("(")).trim();
+                    try {
+                        String[] saatDakika = seferSaati.split(":");
+                        LocalTime seferZamani = LocalTime.of(Integer.parseInt(saatDakika[0]), Integer.parseInt(saatDakika[1]));
+                        LocalTime varisZamani = seferZamani.plusMinutes(rotaSuresi);
+
+                        if (i > 0) varisSaatleri.append(", ");
+                        varisSaatleri.append(varisZamani.toString().substring(0, 5));
+                    } catch (Exception e) {
+                        System.out.println("Varış hesaplama hatası: " + sefer);
+                    }
+                }
+            }
+
+            if (varisSaatleri.length() > 0) {
+                rotametroZaman1.setText("🏁 Varış Saatleri: " + varisSaatleri + " (" + bitisDuragi + ")");
+            } else {
+                rotametroZaman1.setText("🏁 Varış Saatleri: Hesaplanamadı");
+            }
+        } catch (Exception e) {
+            rotametroZaman1.setText("🏁 Varış Saatleri: Hata");
         }
     }
 

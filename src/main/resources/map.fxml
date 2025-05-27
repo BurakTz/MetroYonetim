@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
@@ -16,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
 
-<BorderPane prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.toplutasimaprojesi.MapController">
+<BorderPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.toplutasimaprojesi.MapController">
 
     <!-- SOL PANEL - Mevcut TabPane -->
     <left>
@@ -30,23 +31,72 @@
                                     <children>
                                         <VBox layoutX="14.0" layoutY="6.0" prefHeight="663.0" prefWidth="370.0" spacing="8.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="8.0">
                                             <children>
-                                    <HBox prefHeight="24.0" prefWidth="374.0" spacing="2.0">
-                                       <children>
-                                          <Label prefHeight="20.0" prefWidth="131.0" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="⏱ Yolculuk Saati :" />
-                                          <TextField fx:id="yolcuSaatText" prefHeight="25.0" prefWidth="30.0" text="00" />
-                                          <Label prefHeight="20.0" prefWidth="0.0" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text=":" />
-                                          <TextField fx:id="yolcuDakikaText" prefHeight="25.0" prefWidth="30.0" text="00" />
-                                          <Label alignment="CENTER" prefHeight="20.0" prefWidth="36.0" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="veya" />
-                                          <CheckBox fx:id="simdiCheckBox" mnemonicParsing="false" prefHeight="17.0" prefWidth="67.0" text="ŞİMDİ" />
-                                       </children>
-                                    </HBox>
+                                                <!-- GELİŞTİRİLMİŞ SAAT SEÇİMİ BÖLÜMÜ - COMBOBOX VERSİYONU -->
+                                                <VBox spacing="12.0" style="-fx-background-color: #f0f4ff; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #c7d2e7; -fx-border-width: 2px; -fx-padding: 15px;">
+                                                    <children>
+                                                        <!-- Başlık -->
+                                                        <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="⏰ Yolculuk Zamanı" />
+
+                                                        <!-- Açıklama -->
+                                                        <Label style="-fx-font-size: 11px; -fx-text-fill: #6c757d; -fx-font-style: italic;" text="Metro gelme saatini hesaplamak için yolculuk zamanını seçin" />
+
+                                                        <!-- Saat Seçim Alanı - COMBOBOX -->
+                                                        <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 10px; -fx-border-radius: 10px; -fx-border-color: #d1d9e6; -fx-border-width: 1px; -fx-padding: 12px;">
+                                                            <children>
+                                                                <!-- Saat ComboBox Grubu -->
+                                                                <VBox alignment="CENTER" spacing="5.0">
+                                                                    <children>
+                                                                        <Label style="-fx-font-size: 11px; -fx-text-fill: #6c757d; -fx-font-weight: bold;" text="SAAT" />
+                                                                        <ComboBox fx:id="saatComboBox" prefHeight="40.0" prefWidth="70.0" style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #3498db; -fx-border-width: 2px;" />
+                                                                    </children>
+                                                                </VBox>
+
+                                                                <!-- Ayırıcı -->
+                                                                <Label style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #3498db;" text=":" />
+
+                                                                <!-- Dakika ComboBox Grubu -->
+                                                                <VBox alignment="CENTER" spacing="5.0">
+                                                                    <children>
+                                                                        <Label style="-fx-font-size: 11px; -fx-text-fill: #6c757d; -fx-font-weight: bold;" text="DAKİKA" />
+                                                                        <ComboBox fx:id="dakikaComboBox" prefHeight="40.0" prefWidth="70.0" style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #3498db; -fx-border-width: 2px;" />
+                                                                    </children>
+                                                                </VBox>
+
+                                                                <!-- Veya yazısı -->
+                                                                <VBox alignment="CENTER" prefHeight="61.0" prefWidth="39.0" spacing="5.0">
+                                                                    <children>
+                                                                        <Label style="-fx-font-size: 13px; -fx-text-fill: #6c757d; -fx-font-weight: bold;" text="VEYA" />
+                                                                    </children>
+                                                                </VBox>
+
+                                                                <!-- Şimdi CheckBox -->
+                                                                <VBox alignment="CENTER" prefHeight="61.0" prefWidth="90.0" spacing="5.0">
+                                                                    <children>
+                                                                        <CheckBox fx:id="simdiCheckBox" mnemonicParsing="false" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #27ae60;" text="🕐 ŞİMDİ" />
+                                                                    </children>
+                                                                </VBox>
+                                                            </children>
+                                                        </HBox>
+
+                                                        <!-- BÜYÜK Hızlı Saat Seçimi Butonları -->
+                                                        <HBox alignment="CENTER" spacing="10.0">
+                                                            <children>
+                                                                <Button fx:id="btn0730" prefHeight="35.0" prefWidth="75.0" style="-fx-background-color: linear-gradient(to bottom, #74b9ff, #0984e3);                                                                                -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold;                                                                                -fx-background-radius: 15px; -fx-border-radius: 15px;                                                                                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 0, 1);" text="07:30" />
+                                                                <Button fx:id="btn0900" prefHeight="35.0" prefWidth="75.0" style="-fx-background-color: linear-gradient(to bottom, #55a3ff, #2d3436);                                                                                -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold;                                                                                -fx-background-radius: 15px; -fx-border-radius: 15px;                                                                                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 0, 1);" text="09:00" />
+                                                                <Button fx:id="btn1730" prefHeight="35.0" prefWidth="75.0" style="-fx-background-color: linear-gradient(to bottom, #fd79a8, #e84393);                                                                                -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold;                                                                                -fx-background-radius: 15px; -fx-border-radius: 15px;                                                                                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 0, 1);" text="17:30" />
+                                                                <Button fx:id="btn1900" prefHeight="35.0" prefWidth="75.0" style="-fx-background-color: linear-gradient(to bottom, #a29bfe, #6c5ce7);                                                                                -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold;                                                                                -fx-background-radius: 15px; -fx-border-radius: 15px;                                                                                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 0, 1);" text="19:00" />
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+
                                                 <!-- Başlangıç Bölümü -->
                                                 <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="🚇 Başlangıç Durağı" />
                                                 <TextField fx:id="baslangicTextField" prefHeight="35.0" promptText="Başlangıç durağını yazın..." style="-fx-font-size: 13px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #c7d2e7; -fx-border-width: 2px; -fx-background-color: #f8fafe;" />
-                                                <ListView fx:id="baslangicListView" prefHeight="120.0" style="-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #d1e7dd; -fx-border-width: 2px; -fx-background-color: #f8fffe;" />
+                                                <ListView fx:id="baslangicListView" prefHeight="100.0" prefWidth="374.0" style="-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #d1e7dd; -fx-border-width: 2px; -fx-background-color: #f8fffe;" />
 
                                                 <!-- Ara Duraklar Bölümü -->
-                                                <VBox spacing="10.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #e9ecef; -fx-border-width: 2px; -fx-padding: 12px;">
+                                                <VBox prefHeight="290.0" prefWidth="374.0" spacing="10.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #e9ecef; -fx-border-width: 2px; -fx-padding: 12px;">
                                                     <children>
                                                         <Label style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #495057;" text="📍 Ziyaret Edilecek Duraklar (İsteğe Bağlı)" />
 
@@ -60,7 +110,7 @@
                                                             </children>
                                                         </HBox>
 
-                                                        <ScrollPane fx:id="araDurakScrollPane" fitToWidth="true" prefHeight="150.0" style="-fx-background: transparent; -fx-background-color: transparent;">
+                                                        <ScrollPane fx:id="araDurakScrollPane" fitToWidth="true" prefHeight="163.0" prefWidth="346.0" style="-fx-background: transparent; -fx-background-color: transparent;">
                                                             <content>
                                                                 <VBox fx:id="araDuraklarContainer" spacing="8.0" style="-fx-padding: 5px;">
                                                                     <!-- Dinamik ara duraklar buraya eklenecek -->
@@ -73,10 +123,10 @@
                                                 <!-- Bitiş Bölümü -->
                                                 <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="🏁 Bitiş Durağı" />
                                                 <TextField fx:id="bitisTextField" prefHeight="35.0" promptText="Bitiş durağını yazın..." style="-fx-font-size: 13px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2d7d5; -fx-border-width: 2px; -fx-background-color: #fef9f9;" />
-                                                <ListView fx:id="bitisListView" prefHeight="120.0" style="-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2d7d5; -fx-border-width: 2px; -fx-background-color: #fef9f9;" />
+                                                <ListView fx:id="bitisListView" prefHeight="100.0" prefWidth="374.0" style="-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2d7d5; -fx-border-width: 2px; -fx-background-color: #fef9f9;" />
 
                                                 <!-- Butonlar -->
-                                                <HBox alignment="CENTER" spacing="10.0">
+                                                <HBox alignment="CENTER" prefHeight="60.0" prefWidth="374.0" spacing="10.0">
                                                     <children>
                                                         <Button fx:id="rotaBulButton" mnemonicParsing="false" onAction="#rotaBulButtonAction" prefHeight="45.0" prefWidth="160.0" style="-fx-background-color: linear-gradient(to bottom, #a8d5f2, #87ceeb); -fx-text-fill: #2c3e50; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #7fb3d3; -fx-border-width: 1px;" text="🔍 Rota Bul" />
                                                         <Button fx:id="btnrotaTemizle" mnemonicParsing="false" onAction="#btnrotaTemizleButtonAction" prefHeight="45.0" prefWidth="120.0" style="-fx-background-color: linear-gradient(to bottom, #f8b5b5, #f0a3a3); -fx-text-fill: #2c3e50; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #e3999b; -fx-border-width: 1px;" text="🗑️ Temizle" />
@@ -99,7 +149,7 @@
                                             <children>
                                                 <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="🚊 Hat Seçimi" />
                                                 <Button fx:id="btnTumHatlar" mnemonicParsing="false" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: linear-gradient(to bottom, #b8c6db, #a0a8b8); -fx-text-fill: #2c3e50; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 18px; -fx-border-radius: 18px; -fx-border-color: #8e9aaf; -fx-border-width: 1px;" text="🗺️ TÜM HATLAR" />
-                                                <FlowPane fx:id="hatButtonsPane" alignment="CENTER" hgap="12.0" prefHeight="100.0" prefWidth="300.0" style="-fx-background-color: #f5f7fa; -fx-background-radius: 20px; -fx-border-radius: 20px; -fx-border-color: #d6dce5; -fx-border-width: 1px;" vgap="12.0">
+                                                <FlowPane fx:id="hatButtonsPane" alignment="CENTER" hgap="12.0" prefHeight="138.0" prefWidth="360.0" style="-fx-background-color: #f5f7fa; -fx-background-radius: 20px; -fx-border-radius: 20px; -fx-border-color: #d6dce5; -fx-border-width: 1px;" vgap="12.0">
                                                     <children>
                                                         <Button fx:id="btnM4" mnemonicParsing="false" prefHeight="45.0" prefWidth="80.0" style="-fx-background-color: linear-gradient(to bottom, #e8b4cb, #d49cb5); -fx-text-fill: #2c3e50; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #c58aa6; -fx-border-width: 1px;" text="M4" />
                                                         <Button fx:id="btnM5" mnemonicParsing="false" prefHeight="45.0" prefWidth="80.0" style="-fx-background-color: linear-gradient(to bottom, #d4b5d9, #c4a3cc); -fx-text-fill: #2c3e50; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #b491bf; -fx-border-width: 1px;" text="M5" />
@@ -110,8 +160,8 @@
                                                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                                     </padding>
                                                 </FlowPane>
-                                                <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="🚉 Hat Durakları" />
-                                                <ListView fx:id="hatDuraklariListView" prefHeight="360.0" style="-fx-background-radius: 10px; -fx-border-radius: 10px; -fx-border-color: #3498db; -fx-border-width: 2px; -fx-background-color: #f8fcff; -fx-font-size: 12px;" />
+                                                <Label prefHeight="48.0" prefWidth="107.0" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="🚉 Hat Durakları" />
+                                                <ListView fx:id="hatDuraklariListView" prefHeight="500.0" prefWidth="360.0" style="-fx-background-radius: 10px; -fx-border-radius: 10px; -fx-border-color: #3498db; -fx-border-width: 2px; -fx-background-color: #f8fcff; -fx-font-size: 12px;" />
                                             </children>
                                             <padding>
                                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -170,10 +220,10 @@
                         <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-alignment: center;" text="📋 Rota Sonuçları" />
 
                         <!-- Rota Listesi -->
-                        <ListView fx:id="rotaListView" prefHeight="500.0" style="-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #b8e6c1; -fx-border-width: 2px; -fx-background-color: #f0f9f2; -fx-font-size: 12px;" />
+                        <ListView fx:id="rotaListView" prefHeight="541.0" prefWidth="269.0" style="-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #b8e6c1; -fx-border-width: 2px; -fx-background-color: #f0f9f2; -fx-font-size: 12px;" />
 
                         <!-- Rota İstatistikleri -->
-                        <VBox spacing="8.0" style="-fx-background-color: #e8f5e8; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #a3d977; -fx-border-width: 1px; -fx-padding: 12px;">
+                        <VBox prefHeight="127.0" prefWidth="269.0" spacing="8.0" style="-fx-background-color: #e8f5e8; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #a3d977; -fx-border-width: 1px; -fx-padding: 12px;">
                             <children>
                                 <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="📊 Rota İstatistikleri" />
                                 <Label fx:id="rotaUzunlukLabel" style="-fx-font-size: 12px; -fx-text-fill: #495057;" text="🚇 Toplam Durak: -" />
@@ -182,8 +232,30 @@
                             </children>
                         </VBox>
 
-                        <!-- Hızlı İşlemler -->
-                        <VBox spacing="8.0" />
+                        <!-- Metro Gelme Zamanı -->
+                        <VBox prefHeight="158.0" prefWidth="269.0" spacing="8.0" style="-fx-background-color: #FFE5E5; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #FFCCCC; -fx-border-width: 1px; -fx-padding: 12px;">
+                            <children>
+                                <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="⏰ Sefer &amp; Varış Zamanları" />
+
+                                <Label fx:id="rotametroLabel"
+                                       maxWidth="245.0"
+                                       wrapText="true"
+                                       style="-fx-font-size: 12px; -fx-text-fill: #495057; -fx-wrap-text: true;"
+                                       text="🚇 Kullanılacak Metro: -" />
+
+                                <Label fx:id="rotametroZaman"
+                                       maxWidth="245.0"
+                                       wrapText="true"
+                                       style="-fx-font-size: 12px; -fx-text-fill: #495057; -fx-wrap-text: true;"
+                                       text="⏱️ Sonraki Seferler: -" />
+
+                                <Label fx:id="rotametroZaman1"
+                                       maxWidth="245.0"
+                                       wrapText="true"
+                                       style="-fx-font-size: 12px; -fx-text-fill: #495057; -fx-wrap-text: true;"
+                                       text="🏁 Varış Saatleri: -" />
+                            </children>
+                        </VBox>
                     </children>
                     <padding>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
