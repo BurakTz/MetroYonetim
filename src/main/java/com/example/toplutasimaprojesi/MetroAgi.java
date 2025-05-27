@@ -2,7 +2,7 @@ package com.example.toplutasimaprojesi;
 import java.util.*;
 
 public class MetroAgi {
-    // 1. Singleton instance
+
     private static final MetroAgi instance = new MetroAgi(200, 100);
 
     private Durak[] duraklar;
@@ -12,7 +12,7 @@ public class MetroAgi {
     private int maksDurakSayisi;
     private int maksHatSayisi;
 
-    // 2. Constructor'ı private yapın
+
     private MetroAgi(int maksDurakSayisi, int maksHatSayisi) {
         this.maksDurakSayisi = maksDurakSayisi;
         this.maksHatSayisi = maksHatSayisi;
@@ -22,12 +22,11 @@ public class MetroAgi {
         this.hatSayisi = 0;
     }
 
-    // 3. getInstance metodu ekleyin
     public static MetroAgi getInstance() {
         return instance;
     }
 
-    // Diğer tüm metotlar değişmeden kalır
+
     public int getDurakSayisi() {
         return durakSayisi;
     }
@@ -66,7 +65,6 @@ public class MetroAgi {
     }
 
     // Yeni hat ekleme
-    // Hat ekleme - SADECE RENK İLE
     public Hat hatEkle(String isim, String renk) {
         if (hatSayisi >= maksHatSayisi) {
             System.out.println("Maksimum hat sayısına ulaşıldı!");
@@ -80,7 +78,7 @@ public class MetroAgi {
             }
         }
 
-        // Yeni hat ekle - RENK İLE
+
         Hat yeniHat = new Hat(isim, renk);
         hatlar[hatSayisi] = yeniHat;
         hatSayisi++;
@@ -107,7 +105,7 @@ public class MetroAgi {
         return null;  // Bulunamadı
     }
 
-    // İki durak arasında bağlantı oluşturma
+    // İki durak arasında baglanti olusturma
     public void baglantiEkle(String durak1Isim, String durak2Isim, String hatIsmi,int zaman) {
         Durak drk1 = durakBul(durak1Isim);
         Durak drk2 = durakBul(durak2Isim);
@@ -117,13 +115,12 @@ public class MetroAgi {
             return;
         }
 
-        // Çift yönlü bağlantı oluştur
+        // cift yönlü bağlantı olusturma :)
         drk1.baglantiEkle(drk2, hatIsmi,zaman);
         drk2.baglantiEkle(drk1, hatIsmi,zaman);
     }
 
     // Hat oluşturma ve duraklarını sırayla ekleme
-    // Hat oluşturma ve duraklarını sırayla ekleme - RENK İLE
     public void hatOlustur(String hatIsmi, String renk, String[] durakIsimleri, double[][] koordinatlar, int[] gecenSureler) {
         if (durakIsimleri.length != koordinatlar.length && koordinatlar.length != gecenSureler.length) {
             System.out.println("Durak isimleri, koordinat sayıları ve gecen sureler eşit olmalıdır!");
@@ -265,15 +262,15 @@ public class MetroAgi {
             }
         }
 
-// Geri izleme: başlangıca kadar
+// başlangıca kadar
         while (mevcutDurak != null) {
             yol.add(mevcutDurak);
             hatlar.add(kullanilanHat[mevcutIndeks]);
 
-            // Ebeveyni al
+
             mevcutDurak = ebeveyn[mevcutIndeks];
 
-            // Yeni indeks bulun
+
             if (mevcutDurak != null) {
                 for (int i = 0; i < durakSayisi; i++) {
                     if (duraklar[i] == mevcutDurak) {
@@ -334,7 +331,7 @@ public class MetroAgi {
             }
             System.out.println();
 
-            // Durağın bağlantılarını yazdır
+            // duragin bağlantılarını yazdır
             BaglantiDurak baglanti = duraklar[i].getBaglantiListesi();
             if (baglanti != null) {
                 System.out.println("   Bağlantılar:");
@@ -349,7 +346,7 @@ public class MetroAgi {
         }
     }
 
-    // MetroAgi.java'ya eklenecek tam cokluDurakRotasi() metodu
+
 
     public void cokluDurakRotasi(List<String> durakSirasi,
                                  List<String> rotaBilgileri,
@@ -390,7 +387,7 @@ public class MetroAgi {
 
             System.out.println("Segment " + (i+1) + " koordinat sayısı: " + segmentKoordinatlari.size());
 
-            // İlk birkaç koordinatı yazdır
+            // İlk bikac koordinatı yazdır
             for (int k = 0; k < Math.min(3, segmentKoordinatlari.size()); k++) {
                 Object[] koord = segmentKoordinatlari.get(k);
                 System.out.println("  Segment " + (i+1) + " koord " + k + ": [" + koord[0] + ", " + koord[1] + "]");
@@ -409,7 +406,7 @@ public class MetroAgi {
                                 double segmentSure = Double.parseDouble(sureParcasi);
                                 toplamSure += segmentSure;
                             } catch (NumberFormatException e) {
-                                // Sayı dönüştürme hatası, devam et
+                                // Sayı dönüştürme hatası devam et
                             }
                         }
                     }
@@ -420,15 +417,13 @@ public class MetroAgi {
                 rotaBilgileri.add("  Bu segment için rota bulunamadı!");
             }
 
-            // ÖNEMLİ: Koordinatları ekle - DÜZELTİLMİŞ VERSİYON
+            //kordinatlari ekle kismi
             int startIndex;
             if (i == 0) {
-                // İlk segment: tüm koordinatları ekle
+
                 startIndex = 0;
             } else {
-                // Sonraki segmentler:
-                // Eğer önceki segmentin son koordinatı ile bu segmentin ilk koordinatı aynıysa, ilkini atla
-                // Değilse tüm koordinatları ekle
+
                 if (!rotaKoordinatlari.isEmpty() && !segmentKoordinatlari.isEmpty()) {
                     Object[] sonKoordinat = rotaKoordinatlari.get(rotaKoordinatlari.size() - 1);
                     Object[] ilkKoordinat = segmentKoordinatlari.get(0);
@@ -438,7 +433,7 @@ public class MetroAgi {
                     double yFark = Math.abs((Double)sonKoordinat[1] - (Double)ilkKoordinat[1]);
 
                     if (xFark < 0.001 && yFark < 0.001) {
-                        // Aynı koordinat, ilkini atla
+
                         startIndex = 1;
                         System.out.println("Segment " + (i+1) + ": İlk koordinat atlandı (tekrar)");
                     } else {
@@ -470,7 +465,7 @@ public class MetroAgi {
 
         System.out.println("FİNAL TOPLAM KOORDİNAT: " + rotaKoordinatlari.size());
 
-        // İlk ve son 3 koordinatı yazdır
+
         System.out.println("İlk 3 koordinat:");
         for (int i = 0; i < Math.min(3, rotaKoordinatlari.size()); i++) {
             Object[] koord = rotaKoordinatlari.get(i);

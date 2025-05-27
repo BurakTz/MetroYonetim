@@ -29,7 +29,6 @@ public class MapController implements Initializable {
     @FXML
     private WebView mapView;
 
-    // YENİ: TextField ve ListView'lar ComboBox yerine
     @FXML
     private TextField baslangicTextField;
 
@@ -67,7 +66,6 @@ public class MapController implements Initializable {
     @FXML private Button btnMarmaray;
     @FXML private Button rotaBulButton;
 
-    // Ara duraklar için yeni alanlar
     @FXML
     private VBox araDuraklarContainer;
 
@@ -142,23 +140,22 @@ public class MapController implements Initializable {
     private LocationService.NearestStationResult nearestStationResult;
     private boolean locationFound = false;
 
-    // Grid sistemi için
+    // Grid sistemi için burasi
     private boolean gridInitialized = false;
 
 
     private int globalRotaSuresi = 0;
 
-    // Aktif olarak seçilen hat
+
     private String selectedLine = "ALL";
 
-    // YENİ: Rota görünürlük kontrolü
     private boolean isRouteVisible = false;
 
     private WebEngine webEngine;
     private MetroAgi metroAgi;
 
 
-    // YENİ: Hash table ve utility fonksiyonları
+    // Hash table ve utility func
     private PrimeHashTable primeHashTable;
     private int[] primeSayilar = {2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101};
 
@@ -166,7 +163,7 @@ public class MapController implements Initializable {
     private List<AraDurakBileseni> araDuraklar = new ArrayList<>();
     private int araDurakSayaci = 1;
 
-    // Inner class - AraDurakBileseni
+    // Inner Class - AraDurakBileseni
     private static class AraDurakBileseni {
         TextField textField;
         ListView<String> listView;
@@ -184,7 +181,7 @@ public class MapController implements Initializable {
         try {
             System.out.println("Initialize başlıyor...");
 
-            // Metro ağını oluştur
+            // Metro agini olusturma
             metroAgi = MetroAgi.getInstance();
             metroHatlariniOlustur();
             System.out.println("Metro ağı oluşturuldu");
@@ -201,29 +198,28 @@ public class MapController implements Initializable {
                 }
             });
 
-            // Butonların tıklama olaylarını başlat
+            // Butonlarin tiklamalarini baslat
             butonlariBaslat();
             System.out.println("Butonlar başlatıldı");
 
-            //ComboBox ve hızlı butonlar
+            //ComboBox ve butonlşar
             saatComboBoxDoldur();
             dakikaComboBoxDoldur();
             hizliButonlar();
             System.out.println("ComboBox'lar ve hızlı butonlar hazırlandı");
 
-            // YENİ: Hash table hazırla
+            //Hash table hazırlama
             System.out.println("Hash table hazırlanıyor...");
             hashTableHazirla();
             System.out.println("Hash table hazırlandı");
 
-            // YENİ: TextField listener'ları kur
+            //tfield listener'ları burasu
             System.out.println("TextField listener'ları kuruluyor...");
             textFieldListenersKur();
             System.out.println("TextField listener'ları kuruldu");
 
             beklemeSistemi = new MetroBeklemeSistemi(this);
 
-            // Ara durak sayısı label'ını başlat
             araDurakSayisiniGuncelle();
 
             if (rotaUzunlukLabel != null) rotaUzunlukLabel.setText("🚇 Toplam Durak: -");
@@ -247,7 +243,7 @@ public class MapController implements Initializable {
         }
     }
 
-    // Butonların tıklama olaylarını başlat
+    // Buton tıklamalarını baslat
     private void butonlariBaslat() {
         btnTumHatlar.setOnAction(e -> hatSecAction("ALL"));
         btnM4.setOnAction(e -> hatSecAction("M4"));
@@ -256,26 +252,23 @@ public class MapController implements Initializable {
         btnMarmaray.setOnAction(e -> hatSecAction("Marmaray"));
     }
 
-    // JavaScript köprüsünü ayarla
+    // Jscript köprüsü bu
     private void initJavaScriptBridge() {
         JSObject window = (JSObject) webEngine.executeScript("window");
         window.setMember("javaConnector", this);
     }
 
-    // Haritayı durak ve hatlarla doldur
     private void haritayiDoldur() {
-        // Tüm hatları ekle
-        // Tüm hatları ekle - 🎨 ARTIK HER HAT KENDİ RENGİNİ BİLİYOR!
         for (int i = 0; i < metroAgi.getHatSayisi(); i++) {
             Hat hat = metroAgi.getHatIndex(i);
             String hatIsmi = hat.getIsim();
-            String renk = hat.getRenk(); // 🎨 HAT'TAN RENK AL
+            String renk = hat.getRenk(); //hattan renkalma
 
             System.out.println("Hat ekleniyor: " + hatIsmi + " - Renk: " + renk);
             webEngine.executeScript("addLine('" + hatIsmi + "', '" + renk + "')");
         }
 
-        // Tüm durakları ekle
+        //tüm durakları ekle
         for (int i = 0; i < metroAgi.getDurakSayisi(); i++) {
             Durak durak = metroAgi.getDurakIndex(i);
             webEngine.executeScript("addStation('" +
@@ -285,7 +278,7 @@ public class MapController implements Initializable {
                     durak.isAktarmaNoktasi() + ")");
         }
 
-        // Hatları duraklar ile bağla
+        //hatlari duraklar ile bagla
         for (int i = 0; i < metroAgi.getHatSayisi(); i++) {
             Hat hat = metroAgi.getHatIndex(i);
             String hatIsmi = hat.getIsim();
@@ -297,7 +290,7 @@ public class MapController implements Initializable {
             }
         }
 
-        // Haritayı merkeze al
+        // Haritayı merkeze alma
         if (metroAgi.getDurakSayisi() > 0) {
             Durak ilkDurak = metroAgi.getDurakIndex(0);
             webEngine.executeScript("centerMap(" + ilkDurak.getXKoordinat() +
@@ -324,28 +317,24 @@ public class MapController implements Initializable {
     }
 
     private void hizliButonlar() {
-        // 07:30 butonuna basınca
         btn0730.setOnAction(e -> {
             saatComboBox.setValue("07");
             dakikaComboBox.setValue("30");
             System.out.println("07:30 seçildi!");
         });
 
-        // 09:00 butonuna basınca
         btn0900.setOnAction(e -> {
             saatComboBox.setValue("09");
             dakikaComboBox.setValue("00");
             System.out.println("09:00 seçildi!");
         });
 
-        // 17:30 butonuna basınca
         btn1730.setOnAction(e -> {
             saatComboBox.setValue("17");
             dakikaComboBox.setValue("30");
             System.out.println("17:30 seçildi!");
         });
 
-        // 19:00 butonuna basınca
         btn1900.setOnAction(e -> {
             saatComboBox.setValue("19");
             dakikaComboBox.setValue("00");
@@ -363,7 +352,7 @@ public class MapController implements Initializable {
     private String[] m5Duraklari;
     private int[] m5keys;
 
-    // Metro hatlarını oluştur
+    // metro hatlarını oluştur
     private void metroHatlariniOlustur() {
         {
             marmarayDuraklari =new String[] {
@@ -567,9 +556,9 @@ public class MapController implements Initializable {
         }
     }
 
-    // GÜNCELLENEN: Hat seçildiğinde çağrılacak metot
+    // Hat seçildiğinde çağrılacak metot bu
     private void hatSecAction(String hatIsmi) {
-        // Eğer rota görünürse, gizle
+        // Eğer rota görünürse gizle
         if (isRouteVisible) {
             isRouteVisible = false;
             webEngine.executeScript("toggleRoute(false)");
@@ -590,7 +579,7 @@ public class MapController implements Initializable {
         }
     }
 
-    // Hat durakları göster
+    // Hat durakları goster
     private void hatDuraklariniGoster(String hatIsmi) {
         Hat hat = metroAgi.hatBul(hatIsmi);
         ObservableList<String> duraklar = FXCollections.observableArrayList();
@@ -626,14 +615,12 @@ public class MapController implements Initializable {
 
     private void hesaplaBeklemeSuresiAction() {
         if (!simdiCheckBox.isSelected()) {
-            // Checkbox işaretli DEĞİLSE yapılacaklar buraya
+            // Checkbox isaretli deilse yapılacaklar burasi
             String saatSt = yolcuSaatText.getText().trim();
             String dakikaSt = yolcuDakikaText.getText().trim();
 
-            // Seçilen hat
             String secilenHat = selectedLine;
 
-            // ListView'den seçilen durak
             String secilenDurakBilgi = hatDuraklariListView.getSelectionModel().getSelectedItem();
             if (secilenDurakBilgi == null) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -642,7 +629,7 @@ public class MapController implements Initializable {
                 return;
             }
 
-            // "1. Kadıköy (Aktarma Noktası)" -> "Kadıköy"
+
             String secilenDurak = secilenDurakBilgi.replaceAll("^\\d+\\.\\s*", "")
                     .replaceAll("\\s*\\(.*\\)$", "");
 
@@ -672,7 +659,7 @@ public class MapController implements Initializable {
                 return;
             }
 
-            // "1. Kadıköy (Aktarma Noktası)" -> "Kadıköy"
+
             String secilenDurak = secilenDurakBilgi.replaceAll("^\\d+\\.\\s*", "")
                     .replaceAll("\\s*\\(.*\\)$", "");
 
@@ -739,7 +726,7 @@ public class MapController implements Initializable {
 
 
 
-    // Ara durak ekleme butonu action
+
     @FXML
     private void durakEkleButtonAction(ActionEvent event) {
         System.out.println("DEBUG: Ara durak ekleniyor. Mevcut sayı: " + araDuraklar.size());
@@ -757,10 +744,10 @@ public class MapController implements Initializable {
         araDuraklar.add(yeniDurak);
         araDuraklarContainer.getChildren().add(yeniDurak.container);
 
-        // Sayı label'ını güncelle
+
         araDurakSayisiniGuncelle();
 
-        // ScrollPane'i en alta kaydır
+
         Platform.runLater(() -> {
             araDurakScrollPane.setVvalue(1.0);
         });
@@ -772,7 +759,7 @@ public class MapController implements Initializable {
     private AraDurakBileseni araDurakBileseniOlustur() {
         AraDurakBileseni bilesen = new AraDurakBileseni(araDurakSayaci++);
 
-        // TextField oluştur - BÜYÜTÜLMÜŞ
+
         bilesen.textField = new TextField();
         bilesen.textField.setPromptText("🔍 Ara durak " + bilesen.durakNo + " adını yazın...");
         bilesen.textField.setPrefHeight(40.0); // 35'ten 40'a
@@ -782,14 +769,14 @@ public class MapController implements Initializable {
                 "-fx-border-width: 2px; -fx-background-color: #fffef7; " +
                 "-fx-prompt-text-fill: #6c757d;");
 
-        // ListView oluştur - BÜYÜTÜLMÜŞ
+
         bilesen.listView = new ListView<>();
         bilesen.listView.setPrefHeight(100); // 80'den 100'e
         bilesen.listView.setStyle("-fx-background-radius: 12px; -fx-border-radius: 12px; " +
                 "-fx-border-color: #ffc107; -fx-border-width: 2px; " +
                 "-fx-background-color: #fffef7; -fx-font-size: 13px;");
 
-        // Sil butonu - GELİŞTİRİLMİŞ
+
         bilesen.silButton = new Button("🗑️ Sil");
         bilesen.silButton.setPrefHeight(40.0); // 35'ten 40'a
         bilesen.silButton.setPrefWidth(90.0); // 80'den 90'a
@@ -799,13 +786,13 @@ public class MapController implements Initializable {
                 "-fx-border-color: #e2a8a8; -fx-border-width: 1px;");
         bilesen.silButton.setOnAction(e -> araDurakSil(bilesen));
 
-        // Container oluştur - GELİŞTİRİLMİŞ
+        // Container olusturma
         bilesen.container = new VBox(8); // spacing 5'ten 8'e
         bilesen.container.setStyle("-fx-background-color: #fff; -fx-background-radius: 10px; " +
                 "-fx-border-radius: 10px; -fx-border-color: #dee2e6; " +
                 "-fx-border-width: 1px; -fx-padding: 10px;");
 
-        // Label - GELİŞTİRİLMİŞ
+
         Label durakLabel = new Label("📍 Ara Durak " + bilesen.durakNo);
         durakLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff8c00;");
 
@@ -864,11 +851,11 @@ public class MapController implements Initializable {
         });
     }
 
-    // Tüm durak listesini alma (rota için)
+    // Tüm durak listesini alma (rota icn)
     private List<String> tumRotaDuraklariniAl() {
         List<String> rotaDuraklari = new ArrayList<>();
 
-        // Başlangıç durağı
+        // baslangic duragi
         String baslangic = baslangicTextField.getText().trim();
         if (!baslangic.isEmpty()) {
             rotaDuraklari.add(baslangic);
@@ -885,7 +872,7 @@ public class MapController implements Initializable {
             }
         }
 
-        // Bitiş durağı
+        // bitis duragi
         String bitis = bitisTextField.getText().trim();
         if (!bitis.isEmpty()) {
             rotaDuraklari.add(bitis);
@@ -898,7 +885,7 @@ public class MapController implements Initializable {
         return rotaDuraklari;
     }
 
-    // GÜNCELLENEN: Rota bul button action
+
     @FXML
     private void rotaBulButtonAction(ActionEvent event) {
         System.out.println("=== ROTA BUL BUTON BASILDI ===");
@@ -938,12 +925,11 @@ public class MapController implements Initializable {
         } catch (Exception e) {
             System.err.println("Rota buton hatası: " + e.getMessage());
             e.printStackTrace();
-            // Hata durumunda direkt rota ara
             performRouteSearch();
         }
     }
 
-    // Gelişmiş validasyon metodu
+    // Gelismis validasyon metodu
     private boolean rotaValidasyonu() {
         List<String> tumDuraklar = tumRotaDuraklariniAl();
 
@@ -961,7 +947,7 @@ public class MapController implements Initializable {
             return false;
         }
 
-        // Durakların var olup olmadığını kontrol et
+        // Durakların var olup olmadığının kontrolü
         for (String durakIsmi : tumDuraklar) {
             if (metroAgi.durakBul(durakIsmi) == null) {
                 showAlert("Hata", "Durak Bulunamadı",
@@ -982,7 +968,7 @@ public class MapController implements Initializable {
         alert.showAndWait();
     }
 
-    // YENİ: Normal rota bulma işlemi
+    //Normal rota bulma islemi
     private void performRouteSearch() {
         if (!rotaValidasyonu()) {
             return;
@@ -999,7 +985,7 @@ public class MapController implements Initializable {
                 metroAgi.enKisaYoluBul(tumDuraklar.get(0), tumDuraklar.get(1),
                         rotaBilgileri, rotaKoordinatlari);
             } else {
-                // Çoklu durak rotası
+                // Çoklu durak rotasi
                 System.out.println("DEBUG: Çoklu durak rotası hesaplanıyor: " + tumDuraklar.size() + " durak");
                 metroAgi.cokluDurakRotasi(tumDuraklar, rotaBilgileri, rotaKoordinatlari);
             }
@@ -1088,7 +1074,7 @@ public class MapController implements Initializable {
 
         System.out.println("JavaScript çağrısı yapılıyor...");
 
-        // JavaScript fonksiyonlarını çağır
+        // JScript fonksiyonlarını Cagır.
         webEngine.executeScript("showRoute(" + routePointsJs + ")");
         webEngine.executeScript("showRouteStations(" + stationNamesJs + ")");
 
@@ -1096,14 +1082,14 @@ public class MapController implements Initializable {
         System.out.println("=== DEBUG BİTTİ ===");
     }
 
-    // YENİ: Rota bilgilerinden durak isimlerini çıkar
+    //Rota bilgilerinden durak isimlerini çıkar
     private List<String> extractRouteStationNames(List<String> rotaBilgileri) {
         List<String> durakIsimleri = new ArrayList<>();
 
         for (String satir : rotaBilgileri) {
-            // Çoklu durak rotası için özel durum
+
             if (satir.contains("Ziyaret sırası:")) {
-                // "Ziyaret sırası: Kartal → Göztepe → Sirkeci" formatından durakları çıkar
+
                 String[] parcalar = satir.split(":");
                 if (parcalar.length > 1) {
                     String durakKismi = parcalar[1].trim();
@@ -1114,7 +1100,7 @@ public class MapController implements Initializable {
                             durakIsimleri.add(temizDurak);
                         }
                     }
-                    // Çoklu durak rotasında ana durakları bulduk, return et
+                    // Coklu durak rotasında ana durakları bulduk,return et
                     return durakIsimleri;
                 }
             }
@@ -1149,7 +1135,7 @@ public class MapController implements Initializable {
             System.out.println("DALLANMA: ROTA GÖSTERİLİYOR");
             webEngine.executeScript("hideAllLines()");
 
-            // ✅ BU KISMI EKLE - Rota durakları tekrar göster
+            // Rota durakları tekrar gösterme
             List<String> rotaDuraklari = extractRouteStationNames(rotaListView.getItems());
             if (!rotaDuraklari.isEmpty()) {
                 System.out.println("DEBUG: Rota durakları tekrar gösteriliyor: " + rotaDuraklari);
@@ -1173,7 +1159,7 @@ public class MapController implements Initializable {
     }
 
     private void sendRouteStationsToMap(List<String> rotaDuraklari) {
-        // Durak isimlerini JavaScript array'ine dönüştür
+        // Durak isimlerini JavaScript array'ine dönüştürüş
         StringBuilder stationNamesJs = new StringBuilder("[");
         for (String durakIsmi : rotaDuraklari) {
             stationNamesJs.append("'").append(durakIsmi).append("',");
@@ -1186,7 +1172,7 @@ public class MapController implements Initializable {
         System.out.println("DEBUG: Duraklar JavaScript'e tekrar gönderiliyor: " + stationNamesJs);
         webEngine.executeScript("showRouteStations(" + stationNamesJs + ")");
     }
-    // YENİ: Rota buton durumunu güncelle
+
     private void updateRotaButton() {
         if (isRouteVisible) {
             rotaBulButton.setText("👁️ Rotayı Gizle");
@@ -1229,10 +1215,10 @@ public class MapController implements Initializable {
         }
     }
 
-    // GÜNCELLENEN: Rota temizle
+
     @FXML
     private void btnrotaTemizleButtonAction(ActionEvent event) {
-        // UI temizle
+        // UI temizleme burasi
         rotaListView.getItems().clear();
         baslangicTextField.clear();
         bitisTextField.clear();
@@ -1281,20 +1267,18 @@ public class MapController implements Initializable {
             double tahminiSure = 0.0;
             Set<String> kullanilanHatlar = new HashSet<>();
 
-            // ===== SÜRE HESAPLAMA - DÜZELTİLMİŞ =====
             System.out.println(" Süre hesaplama başlıyor...");
 
             boolean genelOzetBulundu = false;
 
             for (String satir : rotaBilgileri) {
-                // Genel özete geldiysek artık segment sürelerini ekleme
+
                 if (satir.contains(" GENEL ÖZET") || satir.contains("GENEL ÖZET")) {
                     genelOzetBulundu = true;
                     System.out.println(" Genel özet bölümüne ulaşıldı, segment süreleri artık eklenmiyor");
                     continue;
                 }
 
-                // Toplam süre bilgisini bul - SADECE SEGMENT SÜRELERİNİ TOPLA
                 if (!genelOzetBulundu && (satir.contains("Toplam süre") && !satir.contains("Tahmini toplam süre"))) {
                     System.out.println(" SEGMENT SÜRESİ BULUNDU: '" + satir + "'");
 
@@ -1316,7 +1300,6 @@ public class MapController implements Initializable {
                     }
                 }
 
-                // Eğer "Tahmini toplam süre" varsa onu kullan (çoklu durak rotası için)
                 if (satir.contains("⏱️ Tahmini toplam süre")) {
                     System.out.println("TOPLAM SÜRE BULUNDU: '" + satir + "'");
 
@@ -1327,10 +1310,10 @@ public class MapController implements Initializable {
                             String sayiStr = sureParcasi.replaceAll("[^0-9]", "");
 
                             if (!sayiStr.isEmpty()) {
-                                // Eğer segment süreleri zaten toplandıysa, bu değeri kontrol et
+
                                 double genelSure = Double.parseDouble(sayiStr);
                                 if (tahminiSure == 0 || Math.abs(tahminiSure - genelSure) > 5) {
-                                    // Segment süreleri toplanmamışsa veya farklıysa genel süreyi kullan
+
                                     tahminiSure = genelSure;
                                     System.out.println(" Genel süre kullanıldı: " + tahminiSure);
                                 } else {
@@ -1343,7 +1326,6 @@ public class MapController implements Initializable {
                     }
                 }
 
-                // Hat bilgilerini bul (değişmez)
                 if (satir.contains("hattına geç") || satir.contains("hattı")) {
                     if (satir.contains("[") && satir.contains("hattına geç")) {
                         String hatIsmi = satir.substring(satir.indexOf("[") + 1, satir.indexOf(" hattına geç"));
@@ -1356,12 +1338,11 @@ public class MapController implements Initializable {
                 }
             }
 
-            // ===== SONUÇ =====
+
             System.out.println("🔍 =========================");
             System.out.println("🔍 FİNAL HESAPLANAN SÜRE: " + tahminiSure + " dakika");
             System.out.println("🔍 =========================");
 
-            // GLOBAL SÜREYI GÜNCELLE
             globalRotaSuresi = (int) tahminiSure;
             System.out.println("GLOBAL SÜRE GÜNCELLENDİ: " + globalRotaSuresi + " dakika");
 
@@ -1382,7 +1363,6 @@ public class MapController implements Initializable {
             final double finalTahminiSure = tahminiSure;
             final Set<String> finalKullanilanHatlar = new HashSet<>(kullanilanHatlar);
 
-            // Platform.runLater sadece UI güncellemesi için
             Platform.runLater(() -> {
                 if (finalToplamDurak > 1) {
                     rotaUzunlukLabel.setText("🚇 Toplam Durak: " + (finalToplamDurak - 1) + " geçiş");
@@ -1418,8 +1398,6 @@ public class MapController implements Initializable {
         }
     }
 
-    // MapController.java'ya eklenecek metot:
-
     private void metroGelmeZamaniHesapla(List<String> rotaBilgileri) {
         try {
             System.out.println("🔥 metroGelmeZamaniHesapla BAŞLADI - GLOBAL SÜRE: " + globalRotaSuresi);
@@ -1450,17 +1428,17 @@ public class MapController implements Initializable {
                 return;
             }
 
-            // Hat bilgisini göster - DURAK ADI DA EKLENDİ
+            // Hat bilgisini gosterme
             rotametroLabel.setText("🚇 Kullanılacak Metro: " + kullanilanHat + " (" + baslangicDuragi + " durağı)");
 
-            // 🔄 YENİ MANTIK: CheckBox kontrol et
+            //CheckBox kontrolu yap
             LocalTime hesapZamani;
             if (simdiCheckBox.isSelected()) {
-                // ✅ ŞİMDİ tikliyse anlık zamanı kullan
+                //ŞİMDİ tikliyse anlık zamanı kullan
                 hesapZamani = LocalTime.now();
                 System.out.println("ŞİMDİ seçili - Anlık zaman kullanılıyor: " + hesapZamani);
             } else {
-                // ✅ ŞİMDİ tiklı değilse ComboBox'tan seçilen zamanı kullan
+                //ŞİMDİ tiklı değilse ComboBox'tan seçilen zamanı kullan
                 try {
                     int secilenSaat = Integer.parseInt(saatComboBox.getValue());
                     int secilenDakika = Integer.parseInt(dakikaComboBox.getValue());
@@ -1509,7 +1487,7 @@ public class MapController implements Initializable {
                 // i. treni ekle
                 trenZamani = trenZamani.plusMinutes(i * seferAraligi);
 
-                // Kalan süreyi hesapla
+                //Kalan sureyi hesapla
                 long kalanDakika = Duration.between(hesapZamani, trenZamani).toMinutes();
                 if (kalanDakika < 0) kalanDakika += 24 * 60; // Gece yarısı geçerse
 
@@ -1520,7 +1498,7 @@ public class MapController implements Initializable {
 
             rotametroZaman.setText("⏱️ Sonraki Seferler: " + zamanlar.toString());
 
-            // YENİ: Varış saatleri hesapla ve göster
+            //Varış saatleri hesapla ve göster
             hesaplaVeGosterVarisSaatleri(zamanlar.toString());
 
         } catch (Exception e) {
@@ -1530,7 +1508,7 @@ public class MapController implements Initializable {
         }
     }
 
-    // YENİ METOT: Varış saatleri hesapla
+    // Varış saatleri hesapla
     private void hesaplaVeGosterVarisSaatleri(String seferZamanlari) {
         try {
             int rotaSuresi = globalRotaSuresi; // Global süreyi kullan
@@ -1567,7 +1545,7 @@ public class MapController implements Initializable {
         }
     }
 
-    // YENİ: Hash table hazırlama
+    //Hash table hazırlama
     private void hashTableHazirla() {
         primeHashTable = new PrimeHashTable();
 
@@ -1588,7 +1566,7 @@ public class MapController implements Initializable {
         }
     }
 
-    // YENİ: TextField listener'ları kur
+    //TextField listener'ları kur
     private void textFieldListenersKur() {
         baslangicTextField.textProperty().addListener((obs, oldText, newText) -> {
             ArrayList<String> sonuclar = twoPhaseSearch(newText);
@@ -1606,7 +1584,7 @@ public class MapController implements Initializable {
             }
         });
 
-        // ListView'den seçim yapıldığında TextField'ı güncelle
+        // ListView'den seçim yapilinca TextField'i güncelle
         baslangicListView.setOnMouseClicked(e -> {
             String selected = baslangicListView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -1624,7 +1602,7 @@ public class MapController implements Initializable {
         });
     }
 
-    // YENİ: Two-phase search
+    // Two-phase search
     private ArrayList<String> twoPhaseSearch(String aramaMetni) {
         ArrayList<String> sonuclar = new ArrayList<>();
 
@@ -1634,7 +1612,7 @@ public class MapController implements Initializable {
 
         String normalized = normalizeEt(aramaMetni.trim());
 
-        // Phase 1: Hash table lookup
+        // Phase 1: Hash table kontrolü
         if (normalized.length() >= 1) {
             long aramaHash = primeHash(normalized);
             ArrayList<String> adaylar = primeHashTable.get(aramaHash);
@@ -1661,7 +1639,7 @@ public class MapController implements Initializable {
         return sonuclar;
     }
 
-    // YENİ: String utility fonksiyonları
+    // String utility fonksiyonları
     private String normalizeEt(String metin) {
         if (metin == null) return "";
         return metin.toLowerCase()
@@ -1718,14 +1696,13 @@ public class MapController implements Initializable {
         return hash;
     }
 
-    // JavaScript'ten çağrılabilecek metotlar
+    // JavaScript'ten cagirilabilecek metotlar
     public void logFromJS(String message) {
         System.out.println("JavaScript Log: " + message);
     }
 
-    // ==========================================
-    // YENİ: KONUM VE OTOMATIK BAŞLANGIÇ METODLARı
-    // ==========================================
+    // KONUM VE OTOMATIK BAŞLANGIÇ METODLARı
+
 
     // Konum sistemini başlat
     private void initializeLocationSystem() {
@@ -1815,17 +1792,17 @@ public class MapController implements Initializable {
 
         Platform.runLater(() -> {
             try {
-                // Yapay LocationInfo oluştur
+                // Yapay LocationInfo olustur.
                 currentLocation = new LocationService.LocationInfo(lat, lon, "Seçilen Konum", "Harita");
                 locationFound = true;
 
-                // Grid-based ile en yakın durağı bul
+                //Grid-based ile en yakin duragi bul
                 nearestStationResult = LocationService.findNearestStationOptimized(currentLocation, metroAgi);
 
-                // UI güncelle
+                //UI güncelle
                 handleLocationSuccess(currentLocation, nearestStationResult);
 
-                // ✨ OTOMATİK BAŞLANGIÇ DURAĞI SEÇİMİ
+                //OTOMATİK BAŞLANGIÇ DURAĞI SEÇİMİ
                 if (nearestStationResult != null && nearestStationResult.station != null) {
                     String stationName = nearestStationResult.station.getIsim();
                     String distance = nearestStationResult.getFormattedDistance();

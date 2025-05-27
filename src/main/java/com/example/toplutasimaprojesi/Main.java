@@ -17,14 +17,14 @@ public class Main extends Application {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/karsilama_ekrani.fxml"));
             Parent root = loader.load();
 
-            // ✅ DOĞRU: KarsilamaEkraniController olarak cast et
+            //KarsilamaEkraniController olarak cast et
             KarsilamaEkraniController controller = loader.getController();
             controller.setMainStage(stage);
 
-            // Sahne oluşturma
+            //Sahne oluşturma
             Scene scene = new Scene(root);
 
-            // CSS ekleme
+            //CSS ekleme
             try {
                 URL cssUrl = getClass().getResource("/styles.css");
                 if (cssUrl != null) {
@@ -40,7 +40,7 @@ public class Main extends Application {
             stage.getIcons().add(new javafx.scene.image.Image(getClass().getResourceAsStream("/images/icon.png")));
 
 
-            // Sahneyi göster
+            //Sahneyi göster
             stage.setTitle("Rotala");
             stage.setScene(scene);
             stage.show();

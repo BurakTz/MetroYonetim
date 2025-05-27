@@ -49,9 +49,9 @@ public class MetroBeklemeSistemi {
     public void hesaplaBeklemeSuresi(String hatIsmi, String durakIsmi, String saatStr, String dakikaStr, CheckBox simdiCheckBox) {
         int saat, dakika;
 
-        // Eğer kullanıcı 'Şu anki saat' checkbox'ını işaretlemediyse:
+        //
         if (!simdiCheckBox.isSelected()) {
-            // Saat ve dakika girişlerinin 2 basamaklı sayı olup olmadığını kontrol et
+
             if (!saatStr.matches("\\d{2}") || !dakikaStr.matches("\\d{2}")) {
                 gosterUyari("Lütfen saat ve dakikayı 2 basamaklı sayı olarak girin. (örn: 08, 05)");
                 return;
@@ -82,7 +82,7 @@ public class MetroBeklemeSistemi {
         // Kullanıcının belirlediği ya da sistemden alınan saat objesini oluştur
         LocalTime kullaniciSaati = LocalTime.of(saat, dakika);
 
-        // Hat ismi sistemde tanımlı mı, kontrol et
+        // Hat ismi sistemde tanımlı mı kismi
         if (!hatKalkisSaatleri.containsKey(hatIsmi)) {
             gosterUyari("Geçersiz hat ismi: " + hatIsmi);
             return;

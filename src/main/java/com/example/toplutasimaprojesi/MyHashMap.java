@@ -87,7 +87,7 @@ public class MyHashMap<K, V> {
         return null; // Bulunamadı
     }
 
-    // Varsayılan değerle getirme (Java HashMap.getOrDefault benzeri)
+
     public V getOrDefault(K key, V defaultValue) {
         V value = get(key);
         return (value != null) ? value : defaultValue;
