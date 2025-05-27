@@ -14,10 +14,10 @@ public class MetroBeklemeSistemi {
     private MapController mapController;
 
     // Her hat için kalkış saatlerini tutan map
-    private Map<String, LocalTime> hatKalkisSaatleri;
+    private MyHashMap<String, LocalTime> hatKalkisSaatleri;
 
     // Her hat için sefer aralığını tutan map (dakika cinsinden)
-    private Map<String, Integer> hatSeferAraliklari;
+    private MyHashMap<String, Integer> hatSeferAraliklari;
 
     public MetroBeklemeSistemi(MapController mapController) {
         this.mapController = mapController;
@@ -26,7 +26,7 @@ public class MetroBeklemeSistemi {
     }
 
     private void hatKalkisSaatleriOlustur() {
-        hatKalkisSaatleri = new HashMap<>();
+        hatKalkisSaatleri = new MyHashMap<>();
 
         // Her hat için ilk kalkış saatlerini tanımla
         hatKalkisSaatleri.put("Marmaray", LocalTime.of(6, 0));  // 06:00
@@ -36,7 +36,7 @@ public class MetroBeklemeSistemi {
     }
 
     private void hatSeferAralikOlustur() {
-        hatSeferAraliklari = new HashMap<>();
+        hatSeferAraliklari = new MyHashMap<>();
 
         // Her hat için sefer aralıklarını tanımla (dakika)
         hatSeferAraliklari.put("Marmaray", 6);   // 6 dakikada bir
