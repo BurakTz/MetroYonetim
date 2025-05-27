@@ -125,6 +125,26 @@ public class MapController implements Initializable {
     @FXML
     private Label rotametroZaman1;
 
+    @FXML
+    private Button konumBulButton;
+
+    @FXML
+    private Button yakinDurakButton;
+
+    @FXML
+    private Label konumBilgisiLabel;
+
+    @FXML
+    private Label yakinDurakBilgisiLabel;
+
+    // Konum verisi - runtime'da saklanacak
+    private LocationService.LocationInfo currentLocation;
+    private LocationService.NearestStationResult nearestStationResult;
+    private boolean locationFound = false;
+
+    // Grid sistemi için
+    private boolean gridInitialized = false;
+
 
     private int globalRotaSuresi = 0;
 
@@ -214,6 +234,12 @@ public class MapController implements Initializable {
             if (rotametroZaman != null) rotametroZaman.setText("⏱️ Tahmini Süreler: -");
 
             System.out.println("Initialize tamamlandı!");
+
+            Platform.runLater(() -> {
+                initializeLocationSystem();
+            });
+
+            System.out.println("🎯 MapController initialize tamamlandı!");
 
         } catch (Exception e) {
             System.out.println("HATA: Initialize'da exception!");
@@ -1246,6 +1272,7 @@ public class MapController implements Initializable {
 
         selectedLine = "ALL";
         hatDuraklariListView.setItems(FXCollections.observableArrayList());
+        clearLocationData();
     }
 
     private void updateRotaOzeti(List<String> rotaBilgileri, List<Object[]> rotaKoordinatlari) {
@@ -1694,5 +1721,371 @@ public class MapController implements Initializable {
     // JavaScript'ten çağrılabilecek metotlar
     public void logFromJS(String message) {
         System.out.println("JavaScript Log: " + message);
+    }
+
+    // ==========================================
+    // YENİ: KONUM VE OTOMATIK BAŞLANGIÇ METODLARı
+    // ==========================================
+
+    // Konum sistemini başlat
+    private void initializeLocationSystem() {
+        try {
+            System.out.println("🚀 Konum sistemi başlatılıyor...");
+
+            // Grid sistemini LocationService'te hazırla
+            LocationService.initializeGrid(metroAgi);
+            gridInitialized = true;
+
+            // Konum butonlarını başlangıç durumuna getir
+            initializeLocationButtons();
+
+            System.out.println("✅ Konum sistemi hazır!");
+
+        } catch (Exception e) {
+            System.err.println("❌ Konum sistemi başlatılamadı: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Konum butonlarını başlangıç durumuna getir
+    private void initializeLocationButtons() {
+        if (konumBulButton != null) {
+            konumBulButton.setDisable(false);
+        }
+
+        if (yakinDurakButton != null) {
+            yakinDurakButton.setDisable(true); // Başlangıçta devre dışı
+            yakinDurakButton.setText("🚇 En Yakın Durak");
+        }
+
+        if (konumBilgisiLabel != null) {
+            konumBilgisiLabel.setText("📍 Konum: Henüz belirlenmedi");
+        }
+
+        if (yakinDurakBilgisiLabel != null) {
+            yakinDurakBilgisiLabel.setText("");
+        }
+    }
+
+    // FXML Event: Kullanıcı konumunu bul
+    @FXML
+    private void kullaniciKonumunuBul() {
+        System.out.println("🔍 Konum arama başlatıldı...");
+
+        // Buton durumunu güncelle
+        konumBulButton.setDisable(true);
+        konumBulButton.setText("🔄 Aranıyor...");
+
+        if (konumBilgisiLabel != null) {
+            konumBilgisiLabel.setText("📍 Konum: Aranıyor...");
+        }
+
+        if (yakinDurakBilgisiLabel != null) {
+            yakinDurakBilgisiLabel.setText("🔍 En yakın durak aranıyor...");
+        }
+
+        // LocationService ile konum al
+        LocationService.getCurrentLocationByIP(new LocationService.LocationCallback() {
+            @Override
+            public void onLocationReceived(LocationService.LocationInfo location) {
+                currentLocation = location;
+                locationFound = true;
+
+                System.out.println("🌍 Konum alındı: " + location.city + ", " + location.country);
+
+                // Grid-based ile en yakın durağı bul
+                nearestStationResult = LocationService.findNearestStationOptimized(location, metroAgi);
+
+                Platform.runLater(() -> {
+                    handleLocationSuccess(location, nearestStationResult);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Platform.runLater(() -> {
+                    handleLocationError(error);
+                });
+            }
+        });
+    }
+
+    public void mapLocationSelected(double lat, double lon) {
+        System.out.println("🎯 Haritadan konum seçildi: " + lat + ", " + lon);
+
+        Platform.runLater(() -> {
+            try {
+                // Yapay LocationInfo oluştur
+                currentLocation = new LocationService.LocationInfo(lat, lon, "Seçilen Konum", "Harita");
+                locationFound = true;
+
+                // Grid-based ile en yakın durağı bul
+                nearestStationResult = LocationService.findNearestStationOptimized(currentLocation, metroAgi);
+
+                // UI güncelle
+                handleLocationSuccess(currentLocation, nearestStationResult);
+
+                // ✨ OTOMATİK BAŞLANGIÇ DURAĞI SEÇİMİ
+                if (nearestStationResult != null && nearestStationResult.station != null) {
+                    String stationName = nearestStationResult.station.getIsim();
+                    String distance = nearestStationResult.getFormattedDistance();
+
+                    // Çok uzak değilse direkt başlangıç yap
+                    if (!nearestStationResult.isTooFar()) {
+                        setAutomaticStartStation(stationName, distance);
+                        System.out.println("✅ Otomatik başlangıç tamamlandı: " + stationName);
+                    } else {
+                        // Çok uzaksa kullanıcıya sor
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setTitle("Uzak Durak");
+                        alert.setHeaderText("En yakın durak çok uzak");
+                        alert.setContentText("En yakın durak " + stationName + " (" + distance + ") uzaklıkta.\n\n" +
+                                "Bu durağı başlangıç yapmak istiyor musunuz?");
+
+                        if (alert.showAndWait().orElse(null) == javafx.scene.control.ButtonType.OK) {
+                            setAutomaticStartStation(stationName, distance);
+                        }
+                    }
+                }
+
+                // Buton durumunu normale döndür
+                konumBulButton.setDisable(false);
+                konumBulButton.setText("📍 Konum Seç");
+
+            } catch (Exception e) {
+                System.err.println("❌ Harita konum seçimi hatası: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
+
+    // Konum bulma başarılı
+    private void handleLocationSuccess(LocationService.LocationInfo location, LocationService.NearestStationResult result) {
+        try {
+            // Buton durumunu güncelle
+            konumBulButton.setDisable(false);
+            konumBulButton.setText("📍 Konum Bul");
+
+            // Konum bilgisini göster
+            if (konumBilgisiLabel != null) {
+                konumBilgisiLabel.setText(String.format(
+                        "📍 Konum: %s, %s (%.6f, %.6f)",
+                        location.city, location.country,
+                        location.latitude, location.longitude
+                ));
+            }
+
+            // En yakın durak bilgisi
+            if (result != null && result.station != null) {
+                String stationName = result.station.getIsim();
+                String distance = result.getFormattedDistance();
+
+                // Yakın durak butonunu aktifleştir
+                if (yakinDurakButton != null) {
+                    yakinDurakButton.setDisable(false);
+                    yakinDurakButton.setText("🚇 " + stationName);
+                }
+
+                // Mesafe bilgisini göster
+                if (yakinDurakBilgisiLabel != null) {
+                    if (result.isTooFar()) {
+                        yakinDurakBilgisiLabel.setText("⚠️ En yakın durak çok uzak: " + stationName + " (" + distance + ")");
+                        yakinDurakBilgisiLabel.setStyle("-fx-text-fill: #dc3545;");
+                    } else if (result.needsConfirmation()) {
+                        yakinDurakBilgisiLabel.setText("❓ En yakın durak: " + stationName + " (" + distance + ") - Onaylayın");
+                        yakinDurakBilgisiLabel.setStyle("-fx-text-fill: #fd7e14;");
+                    } else {
+                        yakinDurakBilgisiLabel.setText("✅ En yakın durak: " + stationName + " (" + distance + ")");
+                        yakinDurakBilgisiLabel.setStyle("-fx-text-fill: #28a745;");
+                    }
+                }
+
+                System.out.println("🎯 En yakın durak: " + stationName + " (" + distance + ")");
+
+                // Haritayı kullanıcının konumuna odakla
+                webEngine.executeScript(String.format(
+                        "centerMap(%f, %f, 13)",
+                        location.latitude, location.longitude
+                ));
+
+                // Kullanıcının konumunu haritada göster
+                webEngine.executeScript(String.format(
+                        "addUserLocationMarker(%f, %f, '%s')",
+                        location.latitude, location.longitude,
+                        location.city
+                ));
+
+                // En yakın durağı vurgula
+                webEngine.executeScript(String.format(
+                        "highlightNearestStation('%s', '%s')",
+                        stationName, distance
+                ));
+
+            } else {
+                // Hiç durak bulunamadı
+                if (yakinDurakBilgisiLabel != null) {
+                    yakinDurakBilgisiLabel.setText("❌ Yakın durak bulunamadı");
+                    yakinDurakBilgisiLabel.setStyle("-fx-text-fill: #dc3545;");
+                }
+
+                System.out.println("❌ Hiç durak bulunamadı!");
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Konum success handler hatası: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Konum bulma hatası
+    private void handleLocationError(String error) {
+        // Buton durumunu sıfırla
+        konumBulButton.setDisable(false);
+        konumBulButton.setText("📍 Konum Bul");
+
+        if (konumBilgisiLabel != null) {
+            konumBilgisiLabel.setText("❌ Konum alınamadı: " + error);
+        }
+
+        if (yakinDurakBilgisiLabel != null) {
+            yakinDurakBilgisiLabel.setText("💡 Manuel olarak başlangıç durağı seçin");
+            yakinDurakBilgisiLabel.setStyle("-fx-text-fill: #6c757d;");
+        }
+
+        // Varsayılan İstanbul konumunu göster
+        webEngine.executeScript("centerMap(41.0082, 28.9784, 12)");
+
+        // Kullanıcıya bilgi ver
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Konum Hatası");
+        alert.setHeaderText("Konum Belirlenemedi");
+        alert.setContentText("Konum alınamadı: " + error +
+                "\n\nHarita İstanbul merkezine odaklandı.\nManuel olarak başlangıç durağı seçebilirsiniz.");
+        alert.showAndWait();
+
+        System.out.println("❌ Konum hatası: " + error);
+    }
+
+    // FXML Event: En yakın durağı başlangıç yap
+    @FXML
+    private void yakinDurakBaslangicYap() {
+        if (nearestStationResult == null || nearestStationResult.station == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Uyarı");
+            alert.setHeaderText("En Yakın Durak Bulunamadı");
+            alert.setContentText("Önce konum bulma işlemini tamamlayın.");
+            alert.showAndWait();
+            return;
+        }
+
+        String stationName = nearestStationResult.station.getIsim();
+        String distance = nearestStationResult.getFormattedDistance();
+
+        // Çok uzaksa kullanıcıya sor
+        if (nearestStationResult.isTooFar()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Uzak Durak Onayı");
+            alert.setHeaderText("En Yakın Durak Çok Uzak");
+            alert.setContentText("En yakın durak " + stationName + " (" + distance + ") uzaklıkta.\n\n" +
+                    "Bu durağı başlangıç noktası yapmak istiyor musunuz?");
+
+            if (alert.showAndWait().orElse(null) != javafx.scene.control.ButtonType.OK) {
+                return; // Kullanıcı iptal etti
+            }
+        }
+
+        // Orta mesafedeyse onay iste
+        else if (nearestStationResult.needsConfirmation()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Durak Onayı");
+            alert.setHeaderText("Başlangıç Durağı Seçimi");
+            alert.setContentText(stationName + " (" + distance + ") durağını başlangıç noktası yapmak istiyor musunuz?");
+
+            if (alert.showAndWait().orElse(null) != javafx.scene.control.ButtonType.OK) {
+                return; // Kullanıcı iptal etti
+            }
+        }
+
+        // OTOMATIK BAŞLANGIÇ DURAĞI SEÇİMİ!
+        setAutomaticStartStation(stationName, distance);
+    }
+
+    // Otomatik başlangıç durağı seç (ANA FONKSİYON!)
+    private void setAutomaticStartStation(String stationName, String distance) {
+        try {
+            System.out.println("🚇 Otomatik başlangıç durağı seçiliyor: " + stationName);
+
+            // TextField'a otomatik doldur
+            if (baslangicTextField != null) {
+                baslangicTextField.setText(stationName);
+                baslangicTextField.setStyle("-fx-background-color: #d4edda; -fx-border-color: #28a745;");
+            }
+
+            // ListView'i temizle
+            if (baslangicListView != null) {
+                baslangicListView.getItems().clear();
+            }
+
+            // Haritada başlangıç durağını vurgula
+            webEngine.executeScript(String.format(
+                    "highlightStartStation('%s', '%s')",
+                    stationName, distance
+            ));
+
+            // Kullanıcı konumundan başlangıça çizgi çek
+            if (currentLocation != null) {
+                webEngine.executeScript(String.format(
+                        "drawUserToStartLine(%f, %f, '%s')",
+                        currentLocation.latitude, currentLocation.longitude, stationName
+                ));
+
+                // Haritayı her iki noktayı da gösterecek şekilde ayarla
+                webEngine.executeScript(String.format(
+                        "fitMapToBounds(%f, %f, %f, %f)",
+                        currentLocation.latitude, currentLocation.longitude,
+                        nearestStationResult.station.getXKoordinat(),
+                        nearestStationResult.station.getYKoordinat()
+                ));
+            }
+
+            // Durak bilgisini güncelle
+            if (yakinDurakBilgisiLabel != null) {
+                yakinDurakBilgisiLabel.setText("🎯 BAŞLANGIÇ: " + stationName + " (" + distance + ")");
+                yakinDurakBilgisiLabel.setStyle("-fx-text-fill: #155724; -fx-font-weight: bold;");
+            }
+
+            // Yakın durak butonunu da güncelle
+            if (yakinDurakButton != null) {
+                yakinDurakButton.setText("✅ " + stationName);
+                yakinDurakButton.setDisable(true); // Artık seçildi, tekrar seçme
+            }
+
+            System.out.println("✅ Otomatik başlangıç tamamlandı: " + stationName);
+
+        } catch (Exception e) {
+            System.err.println("❌ Otomatik başlangıç hatası: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Konum verilerini temizle
+    private void clearLocationData() {
+        currentLocation = null;
+        nearestStationResult = null;
+        locationFound = false;
+
+        // UI'ı sıfırla
+        initializeLocationButtons();
+
+        // Haritadaki marker'ları temizle
+        webEngine.executeScript("removeLocationMarkers()");
+
+        // Başlangıç TextField'ın rengini sıfırla
+        if (baslangicTextField != null) {
+            baslangicTextField.setStyle("-fx-background-color: #f8fafe; -fx-border-color: #c7d2e7;");
+        }
+
+        System.out.println("🧹 Konum verileri temizlendi");
     }
 }

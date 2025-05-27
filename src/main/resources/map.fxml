@@ -35,6 +35,24 @@
                                     <children>
                                         <VBox layoutX="14.0" layoutY="6.0" prefHeight="663.0" prefWidth="370.0" spacing="5.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="8.0">
                                             <children>
+                                                <Label style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #856404;"
+                                                       text="🗺️ Haritadan Konum Seç &amp; Otomatik Başlangıç" />
+
+                                                <!-- Buton metni -->
+                                                <Button fx:id="konumBulButton"
+                                                        onAction="#kullaniciKonumunuBul"
+                                                        prefHeight="35.0"
+                                                        prefWidth="140.0"
+                                                        style="-fx-background-color: linear-gradient(to bottom, #f7d794, #f3c98b);
+                                                               -fx-text-fill: #2c3e50; -fx-font-size: 12px;
+                                                               -fx-font-weight: bold; -fx-background-radius: 12px;
+                                                               -fx-border-radius: 12px; -fx-border-color: #e8bd78;
+                                                               -fx-border-width: 1px;"
+                                                        text="📍 Konum Seç" />
+
+                                                <!-- Açıklama -->
+                                                <Label style="-fx-font-size: 9px; -fx-text-fill: #6c757d; -fx-font-style: italic;"
+                                                       text="Haritada istediğiniz konuma tıklayın, en yakın durak otomatik başlangıç olacak" />
                                                 <!-- GELİŞTİRİLMİŞ SAAT SEÇİMİ BÖLÜMÜ - COMBOBOX VERSİYONU -->
                                                 <VBox prefHeight="170.0" prefWidth="374.0" spacing="8.0" style="-fx-background-color: #f0f4ff; -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-border-color: #c7d2e7; -fx-border-width: 2px; -fx-padding: 10px;">
                                                     <children>

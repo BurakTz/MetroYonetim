@@ -65,6 +65,97 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
+        /* ==========================================
+           KONUM MARKER ANİMASYONLARI
+        ========================================== */
+
+        @keyframes userLocationPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(255,107,107,0.4);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(255,107,107,0.6);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(255,107,107,0.4);
+            }
+        }
+
+        @keyframes startStationPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(255,215,0,0.6);
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 6px 25px rgba(255,215,0,0.8);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(255,215,0,0.6);
+            }
+        }
+
+        @keyframes nearestStationPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(0,210,255,0.5);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(0,210,255,0.7);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(0,210,255,0.5);
+            }
+        }
+
+        .user-location-marker {
+            cursor: pointer !important;
+            z-index: 2000 !important;
+        }
+
+        .start-station-marker {
+            cursor: pointer !important;
+            z-index: 1500 !important;
+        }
+
+        .nearest-station-marker {
+            cursor: pointer !important;
+            z-index: 1400 !important;
+        }
+
+        .user-location-marker:hover,
+        .start-station-marker:hover,
+        .nearest-station-marker:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+
+        @keyframes clickedLocationPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(76,175,80,0.6);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+            }
+        }
+
+        .clicked-location-marker {
+            cursor: pointer !important;
+            z-index: 1800 !important;
+        }
+
     </style>
 </head>
 <body>
@@ -101,23 +192,49 @@
             let clickedLat = e.latlng.lat;
             let clickedLng = e.latlng.lng;
 
-            // Tıklanan konuma işaretçi ekle
+            console.log("🖱️ Harita tıklandı:", clickedLat, clickedLng);
+
+            // Tıklanan konuma özel işaretçi ekle
             window.clickMarker = L.marker([clickedLat, clickedLng], {
                 icon: L.divIcon({
-                    className: 'clicked-location',
-                    html: '<div style="background-color: red; width: 10px; height: 10px; border-radius: 50%;"></div>',
-                    iconSize: [10, 10]
+                    className: 'clicked-location-marker',
+                    html: `<div style="
+                        background: linear-gradient(135deg, #4CAF50, #45a049);
+                        color: white;
+                        width: 25px;
+                        height: 25px;
+                        border-radius: 50%;
+                        border: 3px solid white;
+                        box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 14px;
+                        animation: clickedLocationPulse 2s infinite;
+                        z-index: 1800;
+                    ">📍</div>`,
+                    iconSize: [31, 31],
+                    iconAnchor: [15, 15]
                 })
             }).addTo(map);
 
-            // Tıklanan konumun popup'ını göster
-            window.clickMarker.bindPopup(
-                '<div><strong>Tıklanan Konum</strong><br>' +
-                'Enlem: ' + clickedLat.toFixed(6) + '<br>' +
-                'Boylam: ' + clickedLng.toFixed(6) + '</div>'
-            ).openPopup();
+            // Popup ekle
+            window.clickMarker.bindPopup(`
+                <div style="text-align: center; min-width: 170px;">
+                    <strong style="color: #4CAF50; font-size: 14px;">📍 Seçilen Konum</strong><br>
+                    <span style="color: #666; font-size: 11px;">
+                        Enlem: ${clickedLat.toFixed(6)}<br>
+                        Boylam: ${clickedLng.toFixed(6)}
+                    </span><br>
+                    <button onclick="window.javaConnector.mapLocationSelected(${clickedLat}, ${clickedLng})"
+                            style="margin-top: 8px; padding: 4px 8px; background: #4CAF50; color: white;
+                                   border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                        🎯 Bu Konumu Seç
+                    </button>
+                </div>
+            `).openPopup();
 
-            console.log("Tıklanan konum:", clickedLat, clickedLng);
+            console.log("✅ Konum seçim marker'ı eklendi");
         });
     };
 
@@ -536,6 +653,273 @@
 
         return true;
     };
+
+    // ===========================================
+    // KONUM VE EN YAKIN DURAK FONKSİYONLARI
+    // ===========================================
+
+    let userLocationMarker = null;
+    let nearestStationMarker = null;
+    let startStationMarker = null;
+
+    // Kullanıcı konumunu haritada göster
+    window.addUserLocationMarker = function(lat, lon, cityName) {
+        console.log("👤 Kullanıcı konumu ekleniyor:", lat, lon, cityName);
+
+        // Önceki marker varsa kaldır
+        if (userLocationMarker) {
+            map.removeLayer(userLocationMarker);
+        }
+
+        // Kullanıcı konumu için özel ikon
+        const userIcon = L.divIcon({
+            className: 'user-location-marker',
+            html: `<div style="
+                background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                border: 4px solid white;
+                box-shadow: 0 4px 12px rgba(255,107,107,0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                animation: userLocationPulse 2s infinite;
+                z-index: 2000;
+            ">👤</div>`,
+            iconSize: [38, 38],
+            iconAnchor: [19, 19]
+        });
+
+        // Marker oluştur ve ekle
+        userLocationMarker = L.marker([lat, lon], {
+            icon: userIcon
+        }).addTo(map);
+
+        // Popup ekle
+        userLocationMarker.bindPopup(`
+            <div style="text-align: center; min-width: 150px;">
+                <strong style="color: #ff6b6b; font-size: 14px;">📍 Mevcut Konumunuz</strong><br>
+                <span style="color: #666; font-size: 12px;">${cityName}</span><br>
+                <span style="color: #999; font-size: 10px;">
+                    ${lat.toFixed(6)}, ${lon.toFixed(6)}
+                </span>
+            </div>
+        `);
+
+        console.log("✅ Kullanıcı konumu marker'ı eklendi");
+        return true;
+    };
+
+    // En yakın durağı vurgula (BAŞLANGIÇ DURAĞI olarak)
+    window.highlightStartStation = function(stationName, distance) {
+        console.log("⭐ Başlangıç durağı vurgulanıyor:", stationName, distance);
+
+        if (stations[stationName]) {
+            const station = stations[stationName];
+
+            // Önceki başlangıç marker'ını kaldır
+            if (startStationMarker) {
+                map.removeLayer(startStationMarker);
+            }
+
+            // Başlangıç durağı için özel marker
+            startStationMarker = L.marker(station.position, {
+                icon: L.divIcon({
+                    className: 'start-station-marker',
+                    html: `<div style="
+                        background: linear-gradient(135deg, #ffd700, #ffed4e);
+                        color: #333;
+                        width: 35px;
+                        height: 35px;
+                        border-radius: 50%;
+                        border: 3px solid #ff6b6b;
+                        box-shadow: 0 4px 15px rgba(255,215,0,0.6);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 18px;
+                        animation: startStationPulse 1.5s infinite;
+                        z-index: 1500;
+                    ">🚇</div>`,
+                    iconSize: [41, 41],
+                    iconAnchor: [20, 20]
+                })
+            }).addTo(map);
+
+            // Popup ekle
+            startStationMarker.bindPopup(`
+                <div style="text-align: center; min-width: 150px;">
+                    <strong style="color: #ffd700; font-size: 14px;">🚇 BAŞLANGIÇ DURAĞI</strong><br>
+                    <span style="color: #333; font-size: 13px; font-weight: bold;">${stationName}</span><br>
+                    <span style="color: #666; font-size: 11px;">
+                        ${station.isTransfer ? '🔄 Aktarma İstasyonu' : '🚉 Metro İstasyonu'}
+                    </span><br>
+                    <span style="color: #ff6b6b; font-size: 10px; font-weight: bold;">
+                        📏 Mesafe: ${distance}
+                    </span>
+                </div>
+            `);
+
+            // Popup'ı aç
+            startStationMarker.openPopup();
+
+            // Haritayı durağa odakla
+            map.setView(station.position, 15);
+
+            console.log("✅ Başlangıç durağı vurgulandı");
+        } else {
+            console.error("❌ Durak bulunamadı:", stationName);
+        }
+
+        return true;
+    };
+
+    // En yakın durağı vurgula (genel)
+    window.highlightNearestStation = function(stationName, distance) {
+        console.log("🎯 En yakın durak vurgulanıyor:", stationName, distance);
+
+        if (stations[stationName]) {
+            const station = stations[stationName];
+
+            // Önceki vurgulama marker'ını kaldır
+            if (nearestStationMarker) {
+                map.removeLayer(nearestStationMarker);
+            }
+
+            // Vurgulama marker'ı ekle
+            nearestStationMarker = L.marker(station.position, {
+                icon: L.divIcon({
+                    className: 'nearest-station-marker',
+                    html: `<div style="
+                        background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+                        color: white;
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 50%;
+                        border: 3px solid white;
+                        box-shadow: 0 4px 12px rgba(0,210,255,0.5);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 16px;
+                        animation: nearestStationPulse 2s infinite;
+                        z-index: 1400;
+                    ">🎯</div>`,
+                    iconSize: [38, 38],
+                    iconAnchor: [19, 19]
+                })
+            }).addTo(map);
+
+            // Popup ekle
+            nearestStationMarker.bindPopup(`
+                <div style="text-align: center; min-width: 130px;">
+                    <strong style="color: #00d2ff; font-size: 14px;">🎯 En Yakın Durak</strong><br>
+                    <span style="color: #333; font-size: 13px; font-weight: bold;">${stationName}</span><br>
+                    <span style="color: #666; font-size: 11px;">
+                        ${station.isTransfer ? '🔄 Aktarma İstasyonu' : '🚉 Metro İstasyonu'}
+                    </span><br>
+                    <span style="color: #00d2ff; font-size: 10px; font-weight: bold;">
+                        📏 Mesafe: ${distance}
+                    </span>
+                </div>
+            `);
+
+            console.log("✅ En yakın durak vurgulandı");
+        } else {
+            console.error("❌ Durak bulunamadı:", stationName);
+        }
+
+        return true;
+    };
+
+    // Kullanıcı konumundan başlangıç durağına çizgi çek
+    window.drawUserToStartLine = function(userLat, userLon, stationName) {
+        console.log("➡️ Kullanıcıdan başlangıça çizgi çekiliyor");
+
+        if (stations[stationName]) {
+            const station = stations[stationName];
+
+            // Önceki çizgiyi kaldır
+            if (window.userToStartLine) {
+                map.removeLayer(window.userToStartLine);
+            }
+
+            // Çizgi çek
+            window.userToStartLine = L.polyline([
+                [userLat, userLon],
+                station.position
+            ], {
+                color: '#ff6b6b',
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }).addTo(map);
+
+            console.log("✅ Kullanıcı-başlangıç çizgisi çekildi");
+        }
+
+        return true;
+    };
+
+    // Tüm konum marker'larını kaldır
+    window.removeLocationMarkers = function() {
+        console.log("🧹 Konum marker'ları temizleniyor");
+
+        if (userLocationMarker) {
+            map.removeLayer(userLocationMarker);
+            userLocationMarker = null;
+        }
+
+        if (nearestStationMarker) {
+            map.removeLayer(nearestStationMarker);
+            nearestStationMarker = null;
+        }
+
+        if (startStationMarker) {
+            map.removeLayer(startStationMarker);
+            startStationMarker = null;
+        }
+
+        if (window.userToStartLine) {
+            map.removeLayer(window.userToStartLine);
+            window.userToStartLine = null;
+        }
+
+        console.log("✅ Tüm konum marker'ları temizlendi");
+        return true;
+    };
+
+    // Kullanıcı konumu marker'ını kaldır
+    window.removeUserLocationMarker = function() {
+        if (userLocationMarker) {
+            map.removeLayer(userLocationMarker);
+            userLocationMarker = null;
+            console.log("✅ Kullanıcı konumu marker'ı kaldırıldı");
+        }
+        return true;
+    };
+
+    // Haritayı iki nokta arasına sığdır
+    window.fitMapToBounds = function(userLat, userLon, stationLat, stationLon) {
+        const bounds = L.latLngBounds([
+            [userLat, userLon],
+            [stationLat, stationLon]
+        ]);
+
+        map.fitBounds(bounds, {
+            padding: [20, 20],
+            maxZoom: 14
+        });
+
+        return true;
+    };
+
+
+
+    console.log("📍 Konum JavaScript fonksiyonları yüklendi");
 </script>
 </body>
 </html>

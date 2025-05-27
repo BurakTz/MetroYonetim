@@ -155,3 +155,132 @@
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
+
+.m1a-button {
+    -fx-background-color: linear-gradient(to bottom, #E32017, #CC1D15);
+    -fx-border-color: #B31812;
+    -fx-border-width: 0 0 3px 0;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+}
+
+.m1a-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #F63A2A, #E32017);
+    -fx-transform: scale(1.05);
+}
+
+/* M1B Hat butonu - Metro tarzı (M1A ile aynı renk) */
+.m1b-button {
+    -fx-background-color: linear-gradient(to bottom, #E32017, #CC1D15);
+    -fx-border-color: #B31812;
+    -fx-border-width: 0 0 3px 0;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+}
+
+.m1b-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #F63A2A, #E32017);
+    -fx-transform: scale(1.05);
+}
+
+/* M2 Hat butonu - Metro tarzı */
+.m2-button {
+    -fx-background-color: linear-gradient(to bottom, #00853F, #007838);
+    -fx-border-color: #006B32;
+    -fx-border-width: 0 0 3px 0;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+}
+
+.m2-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #009946, #00853F);
+    -fx-transform: scale(1.05);
+}
+
+/* M3 Hat butonu - Metro tarzı */
+.m3-button {
+    -fx-background-color: linear-gradient(to bottom, #0098D4, #0089BF);
+    -fx-border-color: #007AAA);
+    -fx-border-width: 0 0 3px 0;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+}
+
+.m3-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #00A7E9, #0098D4);
+    -fx-transform: scale(1.05);
+}
+
+/* M6 Hat butonu - Metro tarzı */
+.m6-button {
+    -fx-background-color: linear-gradient(to bottom, #F0D77A, #EAD06E);
+    -fx-border-color: #D4BB5C;
+    -fx-border-width: 0 0 3px 0;
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+}
+
+.m6-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #F6DE86, #F0D77A);
+    -fx-transform: scale(1.05);
+}
+
+/* M7 Hat butonu - Metro tarzı */
+.m7-button {
+    -fx-background-color: linear-gradient(to bottom, #EE7C0E, #D96F0C);
+    -fx-border-color: #C4620A;
+    -fx-border-width: 0 0 3px 0;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+}
+
+.m7-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #FF8A10, #EE7C0E);
+    -fx-transform: scale(1.05);
+}
+
+/* Genel hat butonları için animasyon efekti */
+.metro-line-button {
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 3, 0, 0, 1);
+    -fx-transition: all 0.3s ease;
+}
+
+.metro-line-button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 5, 0, 0, 2);
+}
+
+.metro-line-button:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+/* Hat butonları konteyner güncelleme */
+.hat-buttons-pane {
+    -fx-background-color: linear-gradient(to bottom, #F8F9FA, #E9ECEF);
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: #DEE2E6;
+    -fx-border-width: 2px;
+    -fx-padding: 15px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 3);
+}
+
